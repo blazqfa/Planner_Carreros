@@ -655,12 +655,13 @@ function setupResize(block,startSid,rowId,name,color){
 
 
 function updateAsignadoFromBlocks(rowId){
+  if(_loading) return; // durante la carga, respetamos el valor guardado manualmente
   const tr=document.querySelector('[data-id="'+rowId+'"]'); if(!tr) return;
   const blocks=[...tr.querySelectorAll('.ablock:not([data-extended])')];
   // Contar personas distintas asignadas a esta fila
   const personas=new Set(blocks.map(b=>b.dataset.person).filter(Boolean));
   const inp=tr.querySelector('.inp-asgn');
-  if(inp) { inp.value=personas.size||''; updateTotals(); }
+  if(inp) { inp.value=personas.size>0 ? personas.size : ''; updateTotals(); scheduleSave(); }
 }
 
 function updateBlockCount(){
@@ -975,13 +976,25 @@ function collectSnapshot(){
 }
 
 async function saveSnapshot(){
+  // 1. Actualizar columna Asignadas desde bloques reales en cada fila
+  document.querySelectorAll('#main-body tr[data-id]').forEach(tr=>{
+    updateAsignadoFromBlocks(tr.dataset.id);
+  });
+
   const snap=collectSnapshot();
   const ex=kpiHistory.findIndex(h=>h.date===snap.date);
   if(ex>=0) kpiHistory[ex]=snap; else kpiHistory.unshift(snap);
+
   const btn=document.querySelector('[onclick="saveSnapshot()"]');
   btn.innerHTML='⏳ Guardando…';
   try {
+    // 2. Guardar KPI snapshot
     await gsCall('saveKPI',{snap});
+    // 3. Guardar estado completo del planner (tareas, bloques, asignadas, personas…)
+    const state=collectState();
+    await gsCall('saveState',{state});
+    _lastHash=JSON.stringify(state);
+
     btn.innerHTML='✓ Guardado'; btn.style.cssText='background:#d0f4ec;color:#085041;border:1px solid var(--c4);border-radius:5px;padding:5px 10px;font-size:11px;cursor:pointer';
     setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },1800);
   } catch(e) { btn.innerHTML='❌ Error'; setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },2000); }
@@ -1286,6 +1299,43 @@ function imprimirPlanner(){
     </div>`;
   }).join('');
 
+  // KPI del último guardado
+  const lastKPI = kpiHistory && kpiHistory.length ? kpiHistory[0] : null;
+  const kpiHTML = lastKPI ? (() => {
+    const covCls = lastKPI.cov>=90?'#1a7a3d':lastKPI.cov>=70?'#9a6200':'#a32d2d';
+    const filasTareas = (lastKPI.rows||[]).filter(r=>r.blocks&&r.blocks.length).map(r=>`
+      <tr>
+        <td style="padding:3px 8px;font-size:10px;font-weight:600;border-bottom:0.5px solid #eee">${r.name}</td>
+        <td style="padding:3px 8px;font-size:10px;border-bottom:0.5px solid #eee;color:#555">${r.blocks.map(b=>`${b.person} (${b.span*30}min)`).join(', ')}</td>
+      </tr>`).join('');
+    return `
+    <div style="margin-top:14px;border:1.5px solid #1B3F7A;border-radius:6px;overflow:hidden">
+      <div style="background:#1B3F7A;color:#fff;padding:6px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:700">📊 KPI — Último guardado: ${lastKPI.date}</span>
+        <span style="font-size:10px;opacity:.85">Jornada 480 min</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid #dde3ec">
+        ${[
+          ['Disponibles',lastKPI.avail,'#1B3F7A'],
+          ['Personas asgn.',lastKPI.totalAsgn?.toFixed(1)||'—','#146687'],
+          ['Min. operativos',lastKPI.totalMin?.toLocaleString('es-ES')||'—','#157f93'],
+          ['Qty necesaria',lastKPI.totalQty?.toFixed(3)||'—','#17a99e'],
+          ['Cobertura',lastKPI.cov+'%',covCls]
+        ].map(([l,v,c])=>`<div style="padding:8px 10px;border-right:1px solid #eee">
+          <div style="font-size:9px;color:#888;margin-bottom:2px">${l}</div>
+          <div style="font-size:16px;font-weight:700;color:${c}">${v}</div>
+        </div>`).join('')}
+      </div>
+      ${filasTareas ? `<table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:4px 8px;font-size:9px;text-align:left;background:#f0f4fa;border-bottom:1px solid #dde3ec;width:35%">Tarea</th>
+          <th style="padding:4px 8px;font-size:9px;text-align:left;background:#f0f4fa;border-bottom:1px solid #dde3ec">Asignaciones</th>
+        </tr></thead>
+        <tbody>${filasTareas}</tbody>
+      </table>` : '<div style="padding:8px 12px;font-size:10px;color:#aaa">Sin asignaciones registradas</div>'}
+    </div>`;
+  })() : '<div style="margin-top:12px;padding:8px;background:#f7f9fa;border:1px solid #dde;border-radius:4px;font-size:10px;color:#888">Sin datos KPI guardados. Pulsa "💾 Guardar KPI" antes de imprimir.</div>';
+
   const w=window.open('','_blank','width=1200,height=800');
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
   <title>${titulo}</title>
@@ -1331,6 +1381,7 @@ function imprimirPlanner(){
       <div style="border:1px solid #c8d8ee;border-radius:0 0 4px 4px;padding:6px 8px">${personasHTML||'<div style="font-size:11px;color:#aaa;padding:6px 0">Sin personal</div>'}</div>
     </div>
   </div>
+  ${kpiHTML}
   <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:5px;font-size:9px;color:#888;display:flex;justify-content:space-between">
     <span>Bormioli Luigi · Planificador de Almacén</span>
     <span>Generado: ${new Date().toLocaleString('es-ES')}</span>
