@@ -51,9 +51,9 @@ thead th{padding:5px 6px;font-weight:500;color:var(--color-text-secondary);borde
 .th-task{min-width:175px;text-align:left;position:sticky;left:0;z-index:5;background:#fff;border-right:2px solid var(--c2)}
 .th-data{width:52px;text-align:center;border-right:0.5px solid var(--bd)}
 .th-qty{width:52px;text-align:center;border-right:2px solid var(--c2)}
-.th-hr{background:#e8f0fb;color:#1a2433;text-align:center;font-size:10px;font-weight:600;border:1px solid #c8d8ee;
+.th-hr{background:var(--c2);color:#fff;text-align:center;font-size:10px;font-weight:500;
   border-right:0.5px solid rgba(255,255,255,.3);padding:4px 0;min-width:76px}
-.th-half{background:#f0f5fc;color:#3d4b5c;text-align:center;font-size:9px;border:1px solid #d8e4f0;
+.th-half{background:var(--c3);color:#fff;text-align:center;font-size:9px;
   border-right:0.5px solid rgba(255,255,255,.2);padding:3px 0;min-width:38px}
 .th-inp{border:1px solid transparent;background:transparent;font-size:11px;font-weight:500;
   color:var(--color-text-secondary);text-align:center;width:100%;font-family:inherit;
@@ -115,9 +115,24 @@ tbody tr:hover .td-task{background:#eef7f8}
 
 /* SIDEBAR */
 .person-card{background:#fff;border-radius:8px;padding:7px 8px;margin-bottom:7px;
-  display:flex;align-items:center;gap:7px;cursor:grab;border:1.5px solid var(--bd)}
+  display:flex;align-items:center;gap:7px;cursor:grab;border:1.5px solid var(--bd);
+  transition:background .2s,border-color .2s,opacity .2s}
 .person-card:active{cursor:grabbing;opacity:.7}
 .person-card.dragging{opacity:.4}
+/* PENDIENTE — sin bloques asignados: fondo naranja suave + borde naranja */
+.person-card.status-pending{background:#fff8f0;border-color:#e8a838}
+.person-card.status-pending .pname-inp{color:#7a4800;font-weight:600}
+.person-card.status-pending .status-dot{background:#e8a838}
+/* ASIGNADA — tiene bloques: fondo verde suave + borde verde */
+.person-card.status-assigned{background:#f0faf5;border-color:#27AE60}
+.person-card.status-assigned .pname-inp{color:#145228;font-weight:600}
+.person-card.status-assigned .status-dot{background:#27AE60}
+/* dot indicator */
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--bd);flex-shrink:0;transition:background .2s}
+/* legend */
+.sb-legend{display:flex;gap:10px;margin-bottom:8px;font-size:10px;color:var(--color-text-secondary)}
+.sb-legend span{display:flex;align-items:center;gap:4px}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-size:9px;font-weight:500;color:#fff;flex-shrink:0}
 .pname-inp{border:none;background:transparent;font-size:11px;font-weight:500;
@@ -125,7 +140,7 @@ tbody tr:hover .td-task{background:#eef7f8}
 .pname-inp:focus{outline:2px solid var(--c3);border-radius:3px;background:#fff;padding:1px 2px}
 .pcard-del{background:transparent;border:none;cursor:pointer;color:#ccc;font-size:12px;flex-shrink:0}
 .pcard-del:hover{color:var(--red)}
-.sb-title{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;
+.sb-title{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;
   display:flex;justify-content:space-between;align-items:center}
 .btn-add-p{background:transparent;border:1px dashed var(--c3);border-radius:5px;padding:6px 8px;
   font-size:11px;cursor:pointer;color:var(--c2);width:100%;font-family:inherit;
@@ -158,28 +173,6 @@ tbody tr:hover .td-task{background:#eef7f8}
 .hist-row.selected td{background:#fde8e8}
 .badge{border-radius:4px;padding:2px 7px;font-size:10px;font-weight:500}
 .no-data{padding:32px;text-align:center;color:var(--color-text-secondary);font-size:12px}
-
-/* CONFIG HINT */
-.cfg-hint{display:none;align-items:center;gap:10px;background:#fff8d6;border-bottom:1px solid #e8d060;
-  padding:8px 16px;font-size:12px;color:#7a6000;}
-.cfg-hint strong{font-weight:600;}
-/* CONFIG MODAL */
-.cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
-.cfg-overlay.open{display:flex;}
-.cfg-box{background:#fff;border-radius:10px;padding:1.75rem;width:100%;max-width:580px;box-shadow:0 8px 40px rgba(0,0,0,.2);}
-.cfg-box h3{font-size:16px;font-weight:600;color:var(--c1);margin-bottom:1rem;}
-.cfg-box ol{font-size:13px;color:#444;line-height:2.1;padding-left:1.2rem;margin-bottom:1rem;}
-.cfg-inp{width:100%;border:1px solid #ddd;border-radius:7px;padding:10px 12px;font-size:12px;font-family:monospace;outline:none;margin-bottom:.75rem;}
-.cfg-inp:focus{border-color:var(--c3);}
-.cfg-btns{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
-.cfg-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:18px;cursor:pointer;color:#888;}
-
-/* FILA PRIORITARIA */
-tr.priority-row > td { background: #fff0f0 !important; }
-tr.priority-row > td:first-child { border-left: 3px solid #e05050; }
-tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
-.priority-star { color: #e05050; font-size: 13px; cursor: pointer; margin-right: 2px; flex-shrink:0; }
-.priority-star:hover { color: #c0202a; }
 </style>
 </head>
 <body>
@@ -205,53 +198,6 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
       <span class="avail-badge" id="avail-badge"></span>
     </div>
     <button class="btn-sec" style="padding:5px 10px" onclick="saveSnapshot()">💾 Guardar KPI</button>
-    <button class="btn-sec" style="padding:5px 10px;font-size:10px;" onclick="showConfigModal()">⚙ Sheets</button>
-  </div>
-</div>
-
-<!-- CONFIG HINT -->
-<div class="cfg-hint" id="cfg-hint">
-  ⚙ <strong>Sin conexión a Google Sheets.</strong> Los cambios no se sincronizarán con otros usuarios.
-  <button onclick="showConfigModal()" style="background:var(--c2);color:#fff;border:none;border-radius:5px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;">Configurar</button>
-</div>
-
-<!-- MODAL CONFIG -->
-<div class="cfg-overlay" id="modal-config" onclick="if(event.target===this)document.getElementById('modal-config').classList.remove('open')">
-  <div class="cfg-box" style="position:relative;">
-    <button class="cfg-close" onclick="document.getElementById('modal-config').classList.remove('open')">✕</button>
-    <h3>⚙ Conectar con Google Sheets</h3>
-    <ol>
-      <li>Ve a <a href="https://sheets.google.com" target="_blank" style="color:var(--c2);">sheets.google.com</a> y crea una hoja llamada <strong>PlannerCarreros</strong></li>
-      <li>Menú: <strong>Extensiones → Apps Script</strong></li>
-      <li>Borra el código y pega el contenido de <code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;">apps-script-planner.gs</code></li>
-      <li>Implementar → Web App · Ejecutar como: <strong>Yo</strong> · Acceso: <strong>Cualquier usuario</strong></li>
-      <li>Copia la URL y pégala aquí abajo</li>
-    </ol>
-    <input class="cfg-inp" id="cfg-url-input" placeholder="https://script.google.com/macros/s/…/exec"/>
-    <div class="cfg-btns">
-      <button class="btn-main" onclick="saveConfig()">💾 Guardar URL</button>
-      <button class="btn-sec" onclick="testConfig()">🔌 Probar conexión</button>
-      <span id="cfg-test-result" style="font-size:13px;"></span>
-    </div>
-  </div>
-</div>
-
-<!-- BARRA RESUMEN + ACCIONES — encima de las pestañas -->
-<div style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bd);border-top:1px solid var(--bd);flex-wrap:wrap;">
-  <div class="act-bar" style="border:none;border-right:1px solid var(--bd);flex-shrink:0;padding:4px 10px;gap:6px;">
-    <button class="btn-main" onclick="addTask()">+ Nueva tarea</button>
-    <button class="btn-sec" onclick="clearAllSlots()">✕ Limpiar franjas</button>
-    <button class="btn-sec" onclick="resetAll()" style="color:var(--red);border-color:var(--red)">↺ Restablecer</button>
-    <button class="btn-sec" onclick="imprimirPlanner()" style="color:#1a7a3d;border-color:#1a7a3d;font-weight:600;">🖨 Imprimir</button>
-  </div>
-  <div class="totals-bar" style="border:none;flex:1;">
-    <div class="tot"><span class="tot-l">Disponibles hoy</span><span class="tot-v" id="s-avail" style="color:var(--c4)">15</span></div>
-    <div style="width:1px;background:var(--bd);align-self:stretch;margin:0 2px"></div>
-    <div class="tot"><span class="tot-l">Personas asignadas</span><span class="tot-v" id="s-asgn">0</span></div>
-    <div class="tot"><span class="tot-l">Min. operativos</span><span class="tot-v" id="s-min">0</span></div>
-    <div class="tot"><span class="tot-l">Qty necesaria</span><span class="tot-v" id="s-qty">0</span></div>
-    <div class="tot"><span class="tot-l">Bloques asignados</span><span class="tot-v" id="s-blocks">0</span></div>
-    <div class="tot" style="margin-left:auto"><span class="tot-l">Cobertura plantilla</span><span class="tot-v" id="s-cover">—</span></div>
   </div>
 </div>
 
@@ -259,7 +205,6 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 <div class="tab-bar">
   <button class="tab active" onclick="showTab('plan',this)">📋 Planificación</button>
   <button class="tab" onclick="showTab('kpi',this)">📊 Historial KPI</button>
-  <button class="tab" onclick="showTab('cfg',this)">⚙ Configurar tareas</button>
 </div>
 
 <!-- MOVE MODAL -->
@@ -322,46 +267,34 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
         <span>👤 Personal</span>
         <span style="font-size:10px;color:var(--c4)">Arrastra → celda</span>
       </div>
+      <div class="sb-legend">
+        <span><span class="leg-dot" style="background:#e8a838"></span>Sin asignar</span>
+        <span><span class="leg-dot" style="background:#27AE60"></span>Asignada</span>
+      </div>
       <div id="cards-wrap"></div>
       <button class="btn-add-p" onclick="addPerson()">+ Añadir persona</button>
     </div>
   </div>
+  <div class="act-bar">
+    <button class="btn-main" onclick="addTask()">+ Nueva tarea</button>
+    <button class="btn-sec" onclick="clearAllSlots()">✕ Limpiar franjas</button>
+    <button class="btn-sec" onclick="resetAll()" style="color:var(--red);border-color:var(--red)" title="Borrar todo y restaurar valores por defecto">↺ Restablecer</button>
+    <span style="font-size:10px;color:var(--color-text-secondary)">
+      Arrastra persona → celda · Clic en bloque → mover/redimensionar · Cabeceras: clic para renombrar · Los cambios se guardan automáticamente
+    </span>
+  </div>
+  <div class="totals-bar">
+    <div class="tot"><span class="tot-l">Disponibles hoy</span><span class="tot-v" id="s-avail" style="color:var(--c4)">15</span></div>
+    <div style="width:1px;background:var(--bd);align-self:stretch;margin:0 2px"></div>
+    <div class="tot"><span class="tot-l">Personas asignadas</span><span class="tot-v" id="s-asgn">0</span></div>
+    <div class="tot"><span class="tot-l">Min. operativos</span><span class="tot-v" id="s-min">0</span></div>
+    <div class="tot"><span class="tot-l">Qty necesaria</span><span class="tot-v" id="s-qty">0</span></div>
+    <div class="tot"><span class="tot-l">Bloques asignados</span><span class="tot-v" id="s-blocks">0</span></div>
+    <div class="tot" style="margin-left:auto"><span class="tot-l">Cobertura plantilla</span><span class="tot-v" id="s-cover">—</span></div>
   </div>
 </div>
 
 <!-- KPI PANE -->
-
-<div id="pane-cfg" class="pane">
-  <div style="max-width:900px;margin:0 auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--c1)">⚙ Configuración de tareas</div>
-        <div style="font-size:12px;color:var(--c2);margin-top:2px">Edita nombre, carga y tiempo aquí. Pulsa <strong>▶ Aplicar al planner</strong> para volcar los cambios.</div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="cfgAddTask()" style="background:var(--c1);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Añadir tarea</button>
-        <button onclick="aplicarAlPlanner()" style="background:#1a7a3d;color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">▶ Aplicar al planner</button>
-      </div>
-    </div>
-
-    <div style="background:#fff;border:1px solid var(--c3);border-radius:8px;overflow:hidden;margin-bottom:12px;">
-      <div style="background:var(--c1);padding:8px 14px;display:grid;grid-template-columns:56px 24px 1fr 100px 100px 80px;gap:8px;align-items:center;">
-        <span style="color:rgba(255,255,255,.7);font-size:10px;font-weight:600;text-transform:uppercase;">Orden</span>
-        <span style="color:rgba(255,255,255,.7);font-size:10px;font-weight:600;">★</span>
-        <span style="color:rgba(255,255,255,.7);font-size:10px;font-weight:600;text-transform:uppercase;">Nombre de la tarea</span>
-        <span style="color:rgba(255,255,255,.7);font-size:10px;font-weight:600;text-transform:uppercase;">Carga diaria</span>
-        <span style="color:rgba(255,255,255,.7);font-size:10px;font-weight:600;text-transform:uppercase;">Tiempo (min)</span>
-        <span></span>
-      </div>
-      <div id="cfg-task-list" style="max-height:500px;overflow-y:auto;"></div>
-    </div>
-
-    <div style="background:#fff8e8;border:1px solid #e8d060;border-radius:8px;padding:10px 14px;font-size:12px;color:#7a6000;">
-      💡 <strong>Nota:</strong> edita los campos directamente y pulsa <strong>▶ Aplicar al planner</strong> para actualizar la vista principal. Marcar ★ resalta la tarea en rojo suave como prioritaria.
-    </div>
-  </div>
-</div>
-
 <div id="pane-kpi" class="pane">
   <div class="kpi-wrap">
     <div class="kpi-grid" id="kpi-summary"></div>
@@ -377,221 +310,115 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════
-//  PLANNER CARREROS — BORMIOLI LUIGI
-//  Backend: Google Sheets via Apps Script
-//  Mejoras: multi-persona por celda, mover bloques, sincronización
-// ══════════════════════════════════════════════════════════════════
-
 const JORNADA = 480;
-const HOURS   = [8,9,10,11,12,13,14,15,16,17];
+const HOURS = [8,9,10,11,12,13,14,15,16,17];
 const PCOLORS = [
   '#325d85','#C0392B','#8E44AD','#E67E22','#27AE60',
   '#D4537E','#146687','#BA7517','#0F6E56','#534AB7',
   '#D85A30','#17a99e','#7B241C','#1A5276','#2C3E50'
 ];
-
-let rowCnt=0, personCnt=0, kpiHistory=[];
+let rowCnt=0, personCnt=0, history=[];
 let dragPersonName='', dragPersonColor='';
 let selectedBlock=null, selectedRowId=null, selectedSid=null, selectedKPIDate=null;
-let _loading=false, _saveTimer=null, _pollingTimer=null, _lastHash='';
 
-// ── GS URL ────────────────────────────────────────────────────────
-let GS_URL = localStorage.getItem('planner_gs_url') || '';
-
-// ── CONFIG MODAL ──────────────────────────────────────────────────
-function showConfigModal() {
-  document.getElementById('cfg-url-input').value = GS_URL;
-  document.getElementById('cfg-test-result').textContent = '';
-  document.getElementById('modal-config').classList.add('open');
+/* ---- UTILS ---- */
+function today(){
+  return new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
-function saveConfig() {
-  const url = document.getElementById('cfg-url-input').value.trim();
-  if (!url) { alert('Pega la URL del Web App'); return; }
-  GS_URL = url; localStorage.setItem('planner_gs_url', url);
-  document.getElementById('modal-config').classList.remove('open');
-  document.getElementById('cfg-hint').style.display = 'none';
-  _toast('✅ URL guardada. Recargando…', '#1a7a3d');
-  setTimeout(() => location.reload(), 1200);
-}
-async function testConfig() {
-  const url = document.getElementById('cfg-url-input').value.trim();
-  const el  = document.getElementById('cfg-test-result');
-  if (!url) { alert('Pega primero la URL'); return; }
-  el.textContent = '⏳ Probando…'; el.style.color = '';
-  try {
-    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({action:'ping'}) });
-    const j = await r.json();
-    if (j.ok) { el.textContent='✅ Conexión correcta'; el.style.color='#1a7a3d'; }
-    else throw new Error(j.error||'Error');
-  } catch(e) { el.textContent='❌ '+e.message; el.style.color='#c0365a'; }
-}
-
-// ── API ───────────────────────────────────────────────────────────
-async function gsCall(action, payload={}) {
-  if (!GS_URL) { showConfigModal(); throw new Error('Sin URL'); }
-  const res = await fetch(GS_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({action, ...payload})
-  });
-  const j = await res.json();
-  if (j.error) throw new Error(j.error);
-  return j;
-}
-
-// ── TOAST ─────────────────────────────────────────────────────────
-function _toast(msg, color) {
-  let t = document.getElementById('_planner_toast');
-  if (!t) {
-    t = document.createElement('div'); t.id='_planner_toast';
-    t.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);';
-    document.body.appendChild(t);
-  }
-  t.style.background = color||'#1a3d5c';
-  t.textContent = msg; t.style.opacity='1';
-  clearTimeout(t._t); t._t = setTimeout(()=>{t.style.opacity='0';},3000);
-}
-
-// ── POLLING 8s ────────────────────────────────────────────────────
-function startPolling() {
-  if (_pollingTimer) clearInterval(_pollingTimer);
-  _pollingTimer = setInterval(async () => {
-    if (!GS_URL) return;
-    try {
-      const r = await gsCall('getState');
-      const h = JSON.stringify(r.data);
-      if (h && h !== _lastHash) {
-        _lastHash = h;
-        _applyRemoteState(r.data);
-        _toast('📡 Planner actualizado');
-      }
-    } catch(e) {}
-  }, 8000);
-}
-
-// ── UTILS ─────────────────────────────────────────────────────────
-function today(){ const d=new Date(); return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
 function todayKey(){ return new Date().toISOString().slice(0,10); }
-function getInitials(n){ return (n||'').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?'; }
+function getInitials(n){ return n.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase(); }
 
-// ── TABS ──────────────────────────────────────────────────────────
+/* ---- TABS ---- */
 function showTab(id,btn){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('pane-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
+  btn.classList.add('active');
   if(id==='kpi') renderKPI();
-  if(id==='cfg') renderCfgTasks();
 }
 
-// ── AVAIL BADGE ───────────────────────────────────────────────────
+/* ---- AVAILABILITY BADGE ---- */
 function updateAvailBadge(){
-  const avail=parseInt(document.getElementById('avail-inp').value)||0;
-  const asgn=parseFloat(document.getElementById('s-asgn').textContent)||0;
-  const diff=avail-Math.ceil(asgn);
-  const badge=document.getElementById('avail-badge');
-  const savail=document.getElementById('s-avail');
-  if(savail) savail.textContent=avail;
-  if(diff<0){ badge.textContent=`⚠ Faltan ${Math.abs(diff)}`; badge.style.background='#fde8e8'; badge.style.color='#791f1f'; }
-  else if(diff===0){ badge.textContent='✓ Justo'; badge.style.background='#d0f4ec'; badge.style.color='#085041'; }
-  else{ badge.textContent=`+${diff} libres`; badge.style.background='#fff9db'; badge.style.color='#7a6000'; }
-  const cover=document.getElementById('s-cover');
-  if(cover){
-    const qty=parseFloat(document.getElementById('s-qty').textContent)||0;
-    const cov=qty>0?Math.min(100,Math.round((avail/qty)*100)):0;
-    const cls=cov>=90?'qty-ok':cov>=70?'qty-warn':'qty-bad';
-    cover.innerHTML=`<span class="${cls}" style="font-size:13px;padding:2px 8px">${cov}%</span>`;
+  const avail = parseInt(document.getElementById('avail-inp').value)||0;
+  const qty   = parseFloat(document.getElementById('s-qty').textContent)||0;
+  const badge = document.getElementById('avail-badge');
+  document.getElementById('s-avail').textContent = avail;
+  if(!qty){ badge.textContent=''; return; }
+  const diff = avail - qty;
+  badge.className = 'avail-badge';
+  if(diff>=0){
+    badge.style.cssText='background:#d0f4ec;color:#085041';
+    badge.textContent=`+${diff.toFixed(1)} libres`;
+  } else {
+    badge.style.cssText='background:#fde8e8;color:#791f1f';
+    badge.textContent=`${diff.toFixed(1)} faltan`;
   }
+  const cov = qty>0 ? Math.min(100,Math.round((avail/qty)*100)) : 0;
+  const ce  = document.getElementById('s-cover');
+  ce.textContent = cov+'%';
+  ce.style.color = cov>=90?'#085041':cov>=70?'#633806':'#791f1f';
 }
 
-// ── BUILD HEADERS ─────────────────────────────────────────────────
+/* ---- TIMELINE HEADERS ---- */
 function buildHeaders(){
-  const hr=document.getElementById('hours-row');
-  const hfr=document.getElementById('halfs-row');
-  const fixedCols=`
-    <th class="th-task" rowspan="1" style="border-right:2px solid var(--c2)"></th>
-    <th class="th-data"></th><th class="th-data"></th><th class="th-data"></th>
-    <th class="th-data"></th><th class="th-qty"></th>`;
-  hr.innerHTML=fixedCols;
-  hfr.innerHTML=`<th class="th-task" style="border-right:2px solid var(--c2)"></th>
-    <th class="th-data"></th><th class="th-data"></th><th class="th-data"></th>
-    <th class="th-data"></th><th class="th-qty"></th>`;
+  const hr=document.getElementById('hours-row'), hf=document.getElementById('halfs-row');
+  let hh='<th class="th-task" style="background:#fff;border-right:2px solid var(--c2)"></th><th colspan="5" style="border-right:2px solid var(--c2);background:#fff"></th>';
+  let fh=hh;
   HOURS.forEach(h=>{
-    const th=document.createElement('th');
-    th.className='th-hr'; th.colSpan=2;
-    th.innerHTML=`<input class="th-inp" value="${h}:00" title="Clic para editar">`;
-    hr.appendChild(th);
-    [0,1].forEach(half=>{
-      const ht=document.createElement('th');
-      ht.className='th-half';
-      ht.innerHTML=`<span style="font-size:8px">${half===0?':00':':30'}</span>`;
-      hfr.appendChild(ht);
-    });
+    hh+=`<th class="th-hr" colspan="2">${String(h).padStart(2,'0')}:00</th>`;
+    fh+=`<th class="th-half">${String(h).padStart(2,'0')}:00</th><th class="th-half">${String(h).padStart(2,'0')}:30</th>`;
   });
+  hr.innerHTML=hh; hf.innerHTML=fh;
 }
 
-// ── SLOT HELPERS ──────────────────────────────────────────────────
+/* ---- SLOTS ---- */
 function sEl(sid){ return document.getElementById('s_'+sid); }
-
 function makeSlots(rowId){
-  return HOURS.map(h=>[0,1].map(half=>{
+  return HOURS.flatMap(h=>[0,1].map(half=>{
     const sid=`${rowId}_${h}_${half}`;
     return `<td class="td-slot${half===0?' hr-start':''}" id="s_${sid}"
-      ondragover="dov(event,'${sid}')" ondragleave="dlv('${sid}')" ondrop="ddr(event,'${sid}','${rowId}')"></td>`;
-  }).join('')).join('');
+      ondragover="dov(event,'${sid}')" ondragleave="dlv('${sid}')" ondrop="ddr(event,'${sid}','${rowId}')"
+      title="${String(h).padStart(2,'0')}:${half===0?'00':'30'}"></td>`;
+  })).join('');
 }
-
-function dov(e,s){ e.preventDefault(); sEl(s)?.classList.add('drop-over'); }
-function dlv(s){ sEl(s)?.classList.remove('drop-over'); }
+function dov(e,s){ e.preventDefault(); sEl(s).classList.add('drop-over'); }
+function dlv(s){ sEl(s).classList.remove('drop-over'); }
 function ddr(e,sid,rowId){
-  e.preventDefault(); sEl(sid)?.classList.remove('drop-over');
+  e.preventDefault(); sEl(sid).classList.remove('drop-over');
   if(!dragPersonName) return;
-  // Allow multiple blocks per slot — each person gets their own block
-  placeBlock(sid, rowId, dragPersonName, dragPersonColor, 1);
-  scheduleSave();
+  placeBlock(sid,rowId,dragPersonName,dragPersonColor,1);
+  updateBlockCount();
 }
 
-// ── PLACE BLOCK (multi-person: each gets own block in slot) ───────
-function placeBlock(sid, rowId, name, color, span){
-  const cell = sEl(sid); if(!cell) return;
-  const block = document.createElement('div');
+/* ---- BLOCKS ---- */
+function placeBlock(sid,rowId,name,color,span){
+  const cell=sEl(sid); if(!cell) return;
+  const block=document.createElement('div');
   block.className='ablock'; block.style.background=color;
   block.dataset.person=name; block.dataset.color=color;
-  block.dataset.sid=sid; block.dataset.rowid=rowId; block.dataset.span=span||1;
-  block.innerHTML=`<span class="initials">${getInitials(name)}</span>
-    <span class="del-b" title="Quitar">✕</span>
-    <div class="rh" title="Redimensionar →"></div>`;
+  block.dataset.sid=sid; block.dataset.rowid=rowId; block.dataset.span=span;
+  block.innerHTML=`<span class="initials">${getInitials(name)}</span><span class="del-b" title="Quitar">✕</span><div class="rh" title="Redimensionar"></div>`;
   block.querySelector('.del-b').addEventListener('click',e=>{ e.stopPropagation(); removeBlock(block); });
-  block.addEventListener('click',e=>{
-    if(e.target.classList.contains('rh')||e.target.classList.contains('del-b')) return;
-    openModal(block,sid,rowId);
-  });
+  block.addEventListener('click',e=>{ if(e.target.classList.contains('rh')||e.target.classList.contains('del-b')) return; openModal(block,sid,rowId); });
   setupResize(block,sid,rowId,name,color);
   cell.appendChild(block);
-  renderExt(block,sid,rowId,span||1,color,name);
-  updateBlockCount();
-  updateAsignadoFromBlocks(rowId);
+  renderExt(block,sid,rowId,span,color,name);
 }
-
 function removeBlock(block){
-  const rId=block.dataset.rowid;
-  clearExt(rId, block.dataset.sid, block);
+  clearExt(block.dataset.rowid,block.dataset.sid,block);
   block.remove(); updateBlockCount();
-  updateAsignadoFromBlocks(rId);
 }
-
 function clearExt(rowId,startSid,block){
   const p=startSid.split('_');
   const si=HOURS.indexOf(parseInt(p[1]))*2+parseInt(p[2]);
   const sp=parseInt(block.dataset.span||1);
-  for(let i=1;i<sp;i++){
+  for(let i=1;i<=sp+2;i++){
     const idx=si+i; if(idx>=HOURS.length*2) break;
     const h=HOURS[Math.floor(idx/2)], half=idx%2;
     const c=sEl(`${rowId}_${h}_${half}`);
-    if(c) c.querySelectorAll(`[data-parent="${startSid}"][data-parentperson="${block.dataset.person}"]`).forEach(e=>e.remove());
+    if(c) c.querySelectorAll(`[data-parent="${startSid}"]`).forEach(e=>e.remove());
   }
 }
-
 function renderExt(block,startSid,rowId,span,color,name){
   clearExt(rowId,startSid,block);
   const p=startSid.split('_');
@@ -602,16 +429,15 @@ function renderExt(block,startSid,rowId,span,color,name){
     const idx=si+i; if(idx>=HOURS.length*2) break;
     const h=HOURS[Math.floor(idx/2)], half=idx%2;
     const c=sEl(`${rowId}_${h}_${half}`); if(!c) break;
+    if(c.querySelector('.ablock:not([data-extended])')) break;
     const ext=document.createElement('div');
     ext.className='ablock'; ext.dataset.extended='1';
-    ext.dataset.parent=startSid; ext.dataset.parentperson=name;
-    ext.dataset.rowid=rowId; ext.style.background=color;
-    ext.style.opacity='0.55'; ext.style.pointerEvents='none';
+    ext.dataset.parent=startSid; ext.dataset.rowid=rowId;
+    ext.style.background=color; ext.style.opacity='0.65'; ext.style.pointerEvents='none';
     ext.innerHTML=`<span style="font-size:7px">${getInitials(name)}</span>`;
     c.appendChild(ext);
   }
 }
-
 function setupResize(block,startSid,rowId,name,color){
   block.querySelector('.rh').addEventListener('mousedown',function(e){
     e.stopPropagation(); e.preventDefault();
@@ -623,41 +449,30 @@ function setupResize(block,startSid,rowId,name,color){
       slots.forEach(sl=>{
         const r=sl.getBoundingClientRect();
         const d=Math.abs(ev.clientX-(r.left+r.width/2));
-        if(d<minD){minD=d;closest=sl;}
+        if(d<minD){ minD=d; closest=sl; }
       });
       if(!closest) return;
       const cp=closest.id.replace('s_','').split('_');
       const ei=HOURS.indexOf(parseInt(cp[1]))*2+parseInt(cp[2]);
       renderExt(block,startSid,rowId,Math.max(1,ei-si+1),color,name);
     }
-    function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); updateBlockCount(); scheduleSave(); }
+    function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); updateBlockCount(); }
     document.addEventListener('mousemove',onMove);
     document.addEventListener('mouseup',onUp);
   });
 }
-
-
-function updateAsignadoFromBlocks(rowId){
-  const tr=document.querySelector('[data-id="'+rowId+'"]'); if(!tr) return;
-  const blocks=[...tr.querySelectorAll('.ablock:not([data-extended])')];
-  // Contar personas distintas asignadas a esta fila
-  const personas=new Set(blocks.map(b=>b.dataset.person).filter(Boolean));
-  const inp=tr.querySelector('.inp-asgn');
-  if(inp) { inp.value=personas.size||''; updateTotals(); }
-}
-
 function updateBlockCount(){
   document.getElementById('s-blocks').textContent=document.querySelectorAll('.ablock:not([data-extended])').length;
+  if(!_loading) { saveState(); refreshPersonStatus(); }
 }
 
-// ── MOVE MODAL ────────────────────────────────────────────────────
+/* ---- MOVE MODAL ---- */
 function openModal(block,sid,rowId){
   selectedBlock=block; selectedSid=sid; selectedRowId=rowId;
   document.getElementById('move-info').textContent=`${block.dataset.person} · ${parseInt(block.dataset.span||1)*30}min`;
   document.getElementById('move-modal').classList.add('open');
 }
 function closeModal(){ document.getElementById('move-modal').classList.remove('open'); selectedBlock=null; }
-
 function moveBlock(dir){
   if(!selectedBlock) return;
   const p=selectedSid.split('_');
@@ -667,20 +482,19 @@ function moveBlock(dir){
   const span=parseInt(selectedBlock.dataset.span||1);
   let idx=HOURS.indexOf(h)*2+half;
 
-  if(dir==='del'){ removeBlock(selectedBlock); closeModal(); scheduleSave(); return; }
+  if(dir==='del'){ removeBlock(selectedBlock); closeModal(); return; }
   if(dir==='grow'){
     renderExt(selectedBlock,selectedSid,rowId,Math.min(span+1,HOURS.length*2-idx),color,name);
     document.getElementById('move-info').textContent=`${name} · ${parseInt(selectedBlock.dataset.span||1)*30}min`;
-    scheduleSave(); return;
+    return;
   }
   if(dir==='shrink'){
     renderExt(selectedBlock,selectedSid,rowId,Math.max(1,span-1),color,name);
     document.getElementById('move-info').textContent=`${name} · ${parseInt(selectedBlock.dataset.span||1)*30}min`;
-    scheduleSave(); return;
+    return;
   }
   if(dir==='right') idx=Math.min(HOURS.length*2-1,idx+1);
   if(dir==='left')  idx=Math.max(0,idx-1);
-
   if(dir==='up'||dir==='down'){
     const rows=[...document.querySelectorAll('#main-body tr[data-id]')];
     const ci=rows.findIndex(r=>r.dataset.id===rowId);
@@ -696,9 +510,8 @@ function moveBlock(dir){
     selectedBlock=[...document.querySelectorAll('.ablock:not([data-extended])')].find(
       b=>b.dataset.sid===newSid&&b.dataset.person===name&&b.dataset.rowid===newRowId)||null;
     if(selectedBlock) document.getElementById('move-info').textContent=`${name} · ${parseInt(selectedBlock.dataset.span||1)*30}min`;
-    updateBlockCount(); scheduleSave(); return;
+    updateBlockCount(); return;
   }
-
   const nH=HOURS[Math.floor(idx/2)], nHalf=idx%2;
   const newSid=`${rowId}_${nH}_${nHalf}`;
   clearExt(rowId,selectedSid,selectedBlock);
@@ -709,10 +522,10 @@ function moveBlock(dir){
   renderExt(selectedBlock,newSid,rowId,span,color,name);
   selectedSid=newSid;
   document.getElementById('move-info').textContent=`${name} · ${parseInt(selectedBlock.dataset.span||1)*30}min`;
-  updateBlockCount(); scheduleSave();
+  updateBlockCount();
 }
 
-// ── TOTALS ────────────────────────────────────────────────────────
+/* ---- TOTALS ---- */
 function calcRow(tr){
   const vol=parseFloat(tr.querySelector('.inp-vol').value)||0;
   const time=parseFloat(tr.querySelector('.inp-time').value)||0;
@@ -738,70 +551,79 @@ function updateTotals(){
   document.getElementById('s-min').textContent=sm.toLocaleString('es-ES');
   document.getElementById('s-qty').textContent=sq.toFixed(3);
   updateAvailBadge();
+  saveState();
 }
 
-// ── TASK SORT ─────────────────────────────────────────────────────
+/* ---- TASK SORT ---- */
 function moveTask(id,dir){
   const tb=document.getElementById('main-body');
   const rows=[...tb.querySelectorAll('tr[data-id]')];
   const idx=rows.findIndex(r=>r.dataset.id===id);
-  if(dir==='up'&&idx>0)              tb.insertBefore(rows[idx],rows[idx-1]);
+  if(dir==='up'&&idx>0)   tb.insertBefore(rows[idx],rows[idx-1]);
   if(dir==='down'&&idx<rows.length-1) tb.insertBefore(rows[idx+1],rows[idx]);
-  scheduleSave();
 }
 
-// ── TASKS ─────────────────────────────────────────────────────────
+/* ---- TASKS ---- */
 function makeTask(data={}){
   rowCnt++; const id='r'+rowCnt;
   const tr=document.createElement('tr'); tr.dataset.id=id;
-  const isPriority = data.priority || false;
-  if(isPriority) tr.classList.add('priority-row');
   tr.innerHTML=`
     <td class="td-task" style="display:flex;align-items:center;gap:2px">
       <div class="sort-btns">
         <button class="sort-btn" onclick="moveTask('${id}','up')" title="Subir tarea">▲</button>
         <button class="sort-btn" onclick="moveTask('${id}','down')" title="Bajar tarea">▼</button>
       </div>
-      <span class="priority-star" title="Marcar como prioritaria" onclick="togglePriority('${id}')">${isPriority?'★':'☆'}</span>
       <input class="inp-task" value="${data.name||''}" placeholder="Nombre de tarea..." style="flex:1">
       <button class="btn-del" onclick="delTask('${id}')">×</button>
     </td>
     <td class="td-data"><input class="inp-cell inp-vol" type="number" value="${data.vol||''}" min="0" step="0.1"></td>
     <td class="td-data"><input class="inp-cell inp-time" type="number" value="${data.time||''}" min="0" step="1"></td>
-    <td class="td-data"><input class="inp-cell inp-asgn" type="number" value="${data.asgn||''}" min="0" step="0.5" style="background:#f0f5ff;font-weight:600" title="Se suma automáticamente al asignar personas"></td>
+    <td class="td-data"><input class="inp-cell inp-asgn" type="number" value="${data.asgn||''}" min="0" step="0.5"></td>
     <td class="td-data c-mt" style="text-align:center">—</td>
     <td class="td-qty c-qty" style="text-align:center">—</td>
-    ${makeSlots(id)}`;
-  tr.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{ updateTotals(); scheduleSave(); }));
+    ${makeSlots(id)}
+  `;
+  tr.querySelectorAll('input').forEach(i=>i.addEventListener('input',updateTotals));
   return tr;
 }
-function addTask(data={}){ document.getElementById('main-body').appendChild(makeTask(data)); updateTotals(); scheduleSave(); }
-
-function togglePriority(id){
-  const tr=document.querySelector('[data-id="'+id+'"]'); if(!tr) return;
-  const star=tr.querySelector('.priority-star');
-  const isPrio=tr.classList.toggle('priority-row');
-  if(star) star.textContent=isPrio?'★':'☆';
-  scheduleSave();
-}
-
+function addTask(data={}){ document.getElementById('main-body').appendChild(makeTask(data)); updateTotals(); }
 function delTask(id){
   const tr=document.querySelector(`[data-id="${id}"]`);
-  if(tr){ tr.remove(); updateTotals(); updateBlockCount(); scheduleSave(); }
+  if(tr){ tr.remove(); updateTotals(); updateBlockCount(); }
 }
-function clearAllSlots(){ document.querySelectorAll('.ablock').forEach(b=>b.remove()); updateBlockCount(); scheduleSave(); }
+function clearAllSlots(){ document.querySelectorAll('.ablock').forEach(b=>b.remove()); updateBlockCount(); }
 
-// ── PERSONS ───────────────────────────────────────────────────────
+/* ---- PERSONS ---- */
+function refreshPersonStatus(){
+  // Collect all assigned person names from blocks in the timeline
+  const assigned=new Set();
+  document.querySelectorAll('.ablock:not([data-extended])').forEach(b=>{
+    if(b.dataset.person) assigned.add(b.dataset.person);
+  });
+  document.querySelectorAll('.person-card').forEach(card=>{
+    const name=card.querySelector('input').value;
+    card.classList.remove('status-pending','status-assigned');
+    if(assigned.has(name)){
+      card.classList.add('status-assigned');
+      card.querySelector('.status-dot').title='Asignada en planificación';
+    } else {
+      card.classList.add('status-pending');
+      card.querySelector('.status-dot').title='Pendiente de asignar';
+    }
+  });
+}
+
 function addPerson(name=''){
   personCnt++; const id='p'+personCnt;
   const color=PCOLORS[(personCnt-1)%PCOLORS.length];
   const div=document.createElement('div');
-  div.className='person-card'; div.dataset.id=id; div.draggable=true; div.style.borderColor=color;
+  div.className='person-card status-pending'; div.dataset.id=id; div.draggable=true; div.style.borderColor='#e8a838';
   div.innerHTML=`<div class="avatar" style="background:${color}">${getInitials(name||'??')}</div>
     <input class="pname-inp" value="${name}" placeholder="Nombre...">
+    <div class="status-dot" title="Pendiente de asignar"></div>
     <button class="pcard-del" onclick="delPerson('${id}')">×</button>`;
   const inp=div.querySelector('input');
-  inp.addEventListener('input',function(){ div.querySelector('.avatar').textContent=getInitials(this.value||'??'); scheduleSave(); });
+  inp.addEventListener('input',function(){ div.querySelector('.avatar').textContent=getInitials(this.value||'??'); });
   div.addEventListener('dragstart',e=>{
     dragPersonName=inp.value||'Sin nombre'; dragPersonColor=color;
     div.classList.add('dragging'); e.dataTransfer.setData('text/plain',dragPersonName);
@@ -809,110 +631,9 @@ function addPerson(name=''){
   div.addEventListener('dragend',()=>div.classList.remove('dragging'));
   document.getElementById('cards-wrap').appendChild(div);
 }
+function delPerson(id){ const el=document.querySelector(`[data-id="${id}"]`); if(el) el.remove(); }
 
-// Estado local de configuración (se edita aquí, se aplica al planner con el botón)
-let _cfgTasks = [];
-
-function renderCfgTasks(){
-  // Leer tareas actuales del planner
-  _cfgTasks = [...document.querySelectorAll('#main-body tr[data-id]')].map(tr=>({
-    id:    tr.dataset.id,
-    name:  tr.querySelector('.inp-task')?.value||'',
-    vol:   tr.querySelector('.inp-vol')?.value||'',
-    time:  tr.querySelector('.inp-time')?.value||'',
-    asgn:  tr.querySelector('.inp-asgn')?.value||'',
-    prio:  tr.classList.contains('priority-row')
-  }));
-
-  const list = document.getElementById('cfg-task-list');
-  if(!list) return;
-  if(!_cfgTasks.length){
-    list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:13px">No hay tareas. Pulsa + Añadir tarea.</div>';
-    return;
-  }
-
-  list.innerHTML = _cfgTasks.map((t,i)=>`
-    <div data-cfg-id="${t.id}" style="display:grid;grid-template-columns:56px 24px 1fr 100px 100px 80px;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid #f0f3f6;${t.prio?'background:#fff5f5;':'background:'+( i%2===0?'#fff':'#fafbfc')+';'}">
-      <div style="display:flex;flex-direction:column;gap:2px;align-items:center;">
-        <button onclick="moveCfgTask('${t.id}','up')" style="background:none;border:1px solid #ddd;border-radius:3px;width:22px;height:17px;font-size:9px;cursor:pointer;line-height:1">▲</button>
-        <button onclick="moveCfgTask('${t.id}','down')" style="background:none;border:1px solid #ddd;border-radius:3px;width:22px;height:17px;font-size:9px;cursor:pointer;line-height:1">▼</button>
-      </div>
-      <span onclick="toggleCfgPrio('${t.id}')" title="Prioritaria" style="font-size:18px;cursor:pointer;color:${t.prio?'#e05050':'#ccc'};user-select:none;">${t.prio?'★':'☆'}</span>
-      <input value="${t.name}" placeholder="Nombre de la tarea…"
-        onchange="updateCfgField('${t.id}','name',this.value)"
-        style="border:1px solid #e0e6ef;border-radius:5px;padding:5px 8px;font-size:13px;font-family:inherit;width:100%;font-weight:${t.prio?'600':'400'};color:${t.prio?'#c0202a':'#1a2433'};outline:none;"
-        onfocus="this.style.borderColor='var(--c2)'" onblur="this.style.borderColor='#e0e6ef'"/>
-      <input value="${t.vol}" type="number" min="0" step="0.1" placeholder="—"
-        onchange="updateCfgField('${t.id}','vol',this.value)"
-        style="border:1px solid #e0e6ef;border-radius:5px;padding:5px 8px;font-size:13px;font-family:inherit;width:100%;text-align:center;outline:none;"
-        onfocus="this.style.borderColor='var(--c2)'" onblur="this.style.borderColor='#e0e6ef'"/>
-      <input value="${t.time}" type="number" min="0" step="1" placeholder="—"
-        onchange="updateCfgField('${t.id}','time',this.value)"
-        style="border:1px solid #e0e6ef;border-radius:5px;padding:5px 8px;font-size:13px;font-family:inherit;width:100%;text-align:center;outline:none;"
-        onfocus="this.style.borderColor='var(--c2)'" onblur="this.style.borderColor='#e0e6ef'"/>
-      <button onclick="delCfgTask('${t.id}')"
-        style="background:#fde8ee;color:#a0282a;border:none;border-radius:5px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">✕ Quitar</button>
-    </div>`).join('');
-}
-
-function updateCfgField(id, field, value){
-  const t = _cfgTasks.find(x=>x.id===id);
-  if(t) t[field] = value;
-}
-
-function toggleCfgPrio(id){
-  const t = _cfgTasks.find(x=>x.id===id);
-  if(!t) return;
-  t.prio = !t.prio;
-  // Actualizar también en el planner
-  togglePriority(id);
-  renderCfgTasks();
-}
-
-function aplicarAlPlanner(){
-  _cfgTasks.forEach(t=>{
-    const tr=document.querySelector('[data-id="'+t.id+'"]'); if(!tr) return;
-    const ni=tr.querySelector('.inp-task');  if(ni) ni.value=t.name;
-    const nv=tr.querySelector('.inp-vol');   if(nv) nv.value=t.vol;
-    const nt=tr.querySelector('.inp-time');  if(nt) nt.value=t.time;
-    // Prioridad
-    if(t.prio) tr.classList.add('priority-row');
-    else tr.classList.remove('priority-row');
-    const star=tr.querySelector('.priority-star');
-    if(star) star.textContent=t.prio?'★':'☆';
-  });
-  updateTotals();
-  scheduleSave();
-  // Volver a planificación
-  showTab('plan', document.querySelector('[onclick*="showTab(\'plan\'"]'));
-  // Toast
-  let toast=document.getElementById('_planner_toast');
-  if(!toast){toast=document.createElement('div');toast.id='_planner_toast';toast.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);';document.body.appendChild(toast);}
-  toast.style.background='#1a7a3d'; toast.textContent='✅ Cambios aplicados al planner'; toast.style.opacity='1';
-  clearTimeout(toast._t); toast._t=setTimeout(()=>{toast.style.opacity='0';},3000);
-}
-
-function cfgAddTask(){
-  const nombre=prompt('Nombre de la nueva tarea:','');
-  if(!nombre||!nombre.trim()) return;
-  addTask({name:nombre.trim()});
-  renderCfgTasks();
-}
-
-function moveCfgTask(id,dir){
-  moveTask(id,dir);
-  renderCfgTasks();
-}
-
-function delCfgTask(id){
-  if(!confirm('¿Eliminar esta tarea del planner? Se perderán los bloques asignados.')) return;
-  delTask(id);
-  renderCfgTasks();
-}
-
-function delPerson(id){ const el=document.querySelector(`[data-id="${id}"]`); if(el){ el.remove(); scheduleSave(); } }
-
-// ── KPI SNAPSHOT ──────────────────────────────────────────────────
+/* ---- KPI ---- */
 function collectSnapshot(){
   const rows=[];
   document.querySelectorAll('#main-body tr[data-id]').forEach(tr=>{
@@ -933,61 +654,66 @@ function collectSnapshot(){
   const cov=tQ>0?Math.min(100,Math.round((avail/tQ)*100)):0;
   return{date:todayKey(),label:today(),rows,persons,avail,totalAsgn:tA,totalMin:tM,totalQty:tQ,totalBlocks:tB,cov};
 }
-
-async function saveSnapshot(){
+function saveSnapshot(){
   const snap=collectSnapshot();
-  const ex=kpiHistory.findIndex(h=>h.date===snap.date);
-  if(ex>=0) kpiHistory[ex]=snap; else kpiHistory.unshift(snap);
+  const ex=history.findIndex(h=>h.date===snap.date);
+  if(ex>=0) history[ex]=snap; else history.unshift(snap);
   const btn=document.querySelector('[onclick="saveSnapshot()"]');
-  btn.innerHTML='⏳ Guardando…';
-  try {
-    await gsCall('saveKPI',{snap});
-    btn.innerHTML='✓ Guardado'; btn.style.cssText='background:#d0f4ec;color:#085041;border:1px solid var(--c4);border-radius:5px;padding:5px 10px;font-size:11px;cursor:pointer';
-    setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },1800);
-  } catch(e) { btn.innerHTML='❌ Error'; setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },2000); }
+  const orig=btn.innerHTML;
+  btn.innerHTML='✓ Guardado';
+  btn.style.cssText='background:#d0f4ec;color:#085041;border:1px solid var(--c4);border-radius:5px;padding:5px 10px;font-size:11px;cursor:pointer';
+  setTimeout(()=>{ btn.innerHTML=orig; btn.removeAttribute('style'); },1800);
 }
-
 function deleteSelectedKPI(){
   if(!selectedKPIDate) return;
-  kpiHistory=kpiHistory.filter(h=>h.date!==selectedKPIDate);
+  history=history.filter(h=>h.date!==selectedKPIDate);
   selectedKPIDate=null;
   document.getElementById('btn-del-kpi').style.display='none';
   renderKPI();
-  scheduleSave();
 }
 function selectKPIRow(tr,date){
   document.querySelectorAll('.hist-row').forEach(r=>r.classList.remove('selected'));
-  if(selectedKPIDate===date){ selectedKPIDate=null; document.getElementById('btn-del-kpi').style.display='none'; }
-  else{ tr.classList.add('selected'); selectedKPIDate=date; document.getElementById('btn-del-kpi').style.display='inline-flex'; }
+  if(selectedKPIDate===date){
+    selectedKPIDate=null;
+    document.getElementById('btn-del-kpi').style.display='none';
+  } else {
+    tr.classList.add('selected');
+    selectedKPIDate=date;
+    document.getElementById('btn-del-kpi').style.display='inline-flex';
+  }
 }
 function renderKPI(){
   const container=document.getElementById('hist-container');
   const summary=document.getElementById('kpi-summary');
-  selectedKPIDate=null; document.getElementById('btn-del-kpi').style.display='none';
-  if(!kpiHistory.length){
+  selectedKPIDate=null;
+  document.getElementById('btn-del-kpi').style.display='none';
+  if(!history.length){
     summary.innerHTML='';
-    container.innerHTML='<div class="no-data">No hay datos guardados aún.<br>Ve a Planificación y pulsa "💾 Guardar KPI".</div>'; return;
+    container.innerHTML='<div class="no-data">No hay datos guardados aún.<br>Ve a Planificación y pulsa "💾 Guardar KPI".</div>';
+    return;
   }
-  const last=kpiHistory[0];
+  const last=history[0];
   const cc=last.cov>=90?'qty-ok':last.cov>=70?'qty-warn':'qty-bad';
   summary.innerHTML=`
     <div class="kpi-card"><span class="kpi-label">Último guardado</span><span class="kpi-val" style="font-size:13px">${last.date}</span></div>
     <div class="kpi-card"><span class="kpi-label">Disponibles</span><span class="kpi-val" style="color:var(--c4)">${last.avail}</span></div>
     <div class="kpi-card"><span class="kpi-label">Min. operativos</span><span class="kpi-val">${last.totalMin.toLocaleString('es-ES')}</span></div>
-    <div class="kpi-card"><span class="kpi-label">Cobertura</span><span class="kpi-val"><span class="badge ${cc}" style="font-size:16px">${last.cov}%</span></span></div>`;
+    <div class="kpi-card"><span class="kpi-label">Cobertura</span><span class="kpi-val"><span class="badge ${cc}" style="font-size:16px">${last.cov}%</span></span></div>
+  `;
   let t=`<table class="hist-table"><thead><tr>
     <th>Fecha</th><th>Disponibles</th><th>Qty nec.</th><th>Min. Tot.</th><th>Bloques</th><th>Cobertura</th>
   </tr></thead><tbody>`;
-  kpiHistory.forEach(h=>{
+  history.forEach(h=>{
     const hcc=h.cov>=90?'qty-ok':h.cov>=70?'qty-warn':'qty-bad';
     t+=`<tr class="hist-row" onclick="selectKPIRow(this,'${h.date}')">
       <td style="font-weight:500;color:var(--c2)">${h.date}</td>
-      <td>${h.avail} pers.</td><td>${h.totalQty.toFixed(3)}</td>
+      <td>${h.avail} pers.</td>
+      <td>${h.totalQty.toFixed(3)}</td>
       <td>${h.totalMin.toLocaleString('es-ES')}</td>
       <td>${h.totalBlocks}</td>
       <td><span class="badge ${hcc}">${h.cov}%</span></td>
     </tr>`;
-    h.rows?.filter(r=>r.blocks?.length).forEach(r=>{
+    h.rows.filter(r=>r.blocks.length).forEach(r=>{
       t+=`<tr style="background:#f9fcfe;pointer-events:none">
         <td colspan="2" style="padding-left:24px;color:var(--color-text-secondary);font-size:10px">${r.name}</td>
         <td colspan="4" style="font-size:10px;color:var(--color-text-secondary)">
@@ -1000,306 +726,128 @@ function renderKPI(){
   container.innerHTML=t;
 }
 
-// ── STATE SERIALIZE ───────────────────────────────────────────────
-function collectState(){
+/* ---- DEFAULT DATA ---- */
+const DEFAULT_TASKS=[
+  {name:'CAPATAZ',vol:'',time:'',asgn:''},
+  {name:'CARGA DE CAMIONES',vol:12,time:60,asgn:2},
+  {name:'PREPARACIÓN DE PEDIDOS',vol:8,time:90,asgn:0.5},
+  {name:'TERCISTAS SALIDA Y S.E. VIDRIO',vol:2,time:60,asgn:0.5},
+  {name:'TERCISTAS SALIDA EMBALAJE',vol:2,time:30,asgn:0.5},
+  {name:'DESCARGA DE EMBALAJE O VIDRIO',vol:2,time:30,asgn:0.5},
+  {name:'PRE. DE PEDIDOS DE EMBALAJE, PARA S.E Y LÍNEAS DE PRODUCCIÓN',vol:6,time:60,asgn:2},
+  {name:'TERCISTAS ENTRADA',vol:2,time:60,asgn:0.5},
+  {name:'ZONA FRANCA',vol:161,time:5,asgn:2},
+  {name:'AFTER GLASS (ENTRADAS)',vol:24,time:5,asgn:0.5},
+  {name:'AFTER GLASS (SALIDAS)',vol:38,time:5,asgn:0.5},
+  {name:'INVENTARIOS CÍCLICOS',vol:10,time:90,asgn:2},
+  {name:'CAMBIOS DE UBICACIÓN PARA OPTIMIZAR ALMACÉN',vol:5,time:60,asgn:1},
+  {name:'CALCÍN-LIMPIEZA',vol:1.8,time:45,asgn:''},
+  {name:'OTROS',vol:'',time:'',asgn:''}
+];
+const DEFAULT_PERSONS=[
+  'J. Chinchilla','J. Moreno','J. Pérez','Alejandro Bertoxa','G. Hernández',
+  'J.M. del Viejo','A. Martínez','F. Caravaca','R. Lobo','J.A. Masamero',
+  'J.L. Matos','G. de Lucas','M.A. Palero','J.M. Ortego Corrochano','J.A. Rocandio'
+];
+const LS_KEY = 'bormioli_planner_v6c';
+let _loading = false; // flag: bloquea saveState durante la carga inicial
+
+/* ---- PERSIST: SAVE ---- */
+function saveState(){
+  if(_loading) return; // no guardar mientras se está cargando
   const tasks=[];
   document.querySelectorAll('#main-body tr[data-id]').forEach(tr=>{
     const blocks=[];
     tr.querySelectorAll('.ablock:not([data-extended])').forEach(b=>{
+      // guardamos h y half del sid, no el rowId (que cambia en cada carga)
       const parts=b.dataset.sid.split('_');
       blocks.push({person:b.dataset.person,color:b.dataset.color,h:parts[1],half:parts[2],span:parseInt(b.dataset.span||1)});
     });
-    tasks.push({name:tr.querySelector('.inp-task').value,vol:tr.querySelector('.inp-vol').value,time:tr.querySelector('.inp-time').value,asgn:tr.querySelector('.inp-asgn').value,blocks});
+    tasks.push({
+      name: tr.querySelector('.inp-task').value,
+      vol:  tr.querySelector('.inp-vol').value,
+      time: tr.querySelector('.inp-time').value,
+      asgn: tr.querySelector('.inp-asgn').value,
+      blocks
+    });
   });
-  const persons=[]; document.querySelectorAll('.person-card').forEach(c=>persons.push(c.querySelector('input').value));
-  const colHeaders=[]; document.querySelectorAll('thead tr:first-child input').forEach(i=>colHeaders.push(i.value));
-  return{tasks,persons,colHeaders,pageTitle:document.getElementById('hdr-title').value,avail:document.getElementById('avail-inp').value,kpiHistory};
+  const persons=[];
+  document.querySelectorAll('.person-card').forEach(c=>persons.push(c.querySelector('input').value));
+  const colHeaders=[];
+  document.querySelectorAll('thead tr:first-child input').forEach(i=>colHeaders.push(i.value));
+  const state={
+    tasks, persons, colHeaders,
+    pageTitle: document.getElementById('hdr-title').value,
+    avail: document.getElementById('avail-inp').value,
+    kpiHistory: history
+  };
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
 }
 
-// ── SAVE ──────────────────────────────────────────────────────────
-function scheduleSave(){
-  if(_loading) return;
-  clearTimeout(_saveTimer);
-  _saveTimer=setTimeout(()=>{ if(GS_URL) saveToSheets(); },800);
-}
+/* ---- PERSIST: LOAD ---- */
+function loadState(){
+  _loading = true;
+  let state=null;
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw) state=JSON.parse(raw); }catch(e){}
 
-async function saveToSheets(){
-  if(!GS_URL||_loading) return;
-  try {
-    const state=collectState();
-    const body=JSON.stringify(state);
-    if(body===_lastHash) return; // no changes
-    await gsCall('saveState',{state});
-    _lastHash=body;
-  } catch(e){ console.warn('Save error:',e.message); }
-}
-
-// ── LOAD & APPLY STATE ────────────────────────────────────────────
-function _applyRemoteState(state){
-  if(!state||!state.tasks||!state.tasks.length) return;
-  _loading=true;
-  // Clear existing
-  document.getElementById('main-body').innerHTML='';
-  document.getElementById('cards-wrap').innerHTML='';
-  rowCnt=0; personCnt=0;
-  if(state.pageTitle) document.getElementById('hdr-title').value=state.pageTitle;
-  if(state.avail!=null) document.getElementById('avail-inp').value=state.avail;
-  if(state.colHeaders){
-    const inputs=[...document.querySelectorAll('thead tr:first-child input')];
-    state.colHeaders.forEach((v,i)=>{ if(inputs[i]) inputs[i].value=v; });
-  }
-  state.persons.forEach(n=>addPerson(n));
-  state.tasks.forEach(t=>{ addTask({name:t.name,vol:t.vol,time:t.time,asgn:t.asgn}); });
-  const rows=[...document.querySelectorAll('#main-body tr[data-id]')];
-  state.tasks.forEach((t,i)=>{
-    if(!t.blocks||!t.blocks.length) return;
-    const rowId=rows[i]?.dataset.id; if(!rowId) return;
-    t.blocks.forEach(b=>{ placeBlock(`${rowId}_${b.h}_${b.half}`,rowId,b.person,b.color,b.span); });
-  });
-  if(state.kpiHistory) kpiHistory=state.kpiHistory;
-  _loading=false;
-  updateTotals(); updateBlockCount(); updateAvailBadge();
-}
-
-async function loadState(){
-  _loading=true;
-  const DEFAULT_TASKS=[
-    {name:'CAPATAZ',vol:'',time:'',asgn:''},
-    {name:'CARGA DE CAMIONES',vol:12,time:60,asgn:2},
-    {name:'PREPARACIÓN DE PEDIDOS',vol:8,time:90,asgn:0.5},
-    {name:'TERCISTAS SALIDA Y S.E. VIDRIO',vol:2,time:60,asgn:0.5},
-    {name:'TERCISTAS SALIDA EMBALAJE',vol:2,time:30,asgn:0.5},
-    {name:'DESCARGA DE EMBALAJE O VIDRIO',vol:2,time:30,asgn:0.5},
-    {name:'PRE. DE PEDIDOS DE EMBALAJE, PARA S.E Y LÍNEAS DE PRODUCCIÓN',vol:6,time:60,asgn:2},
-    {name:'TERCISTAS ENTRADA',vol:2,time:60,asgn:0.5},
-    {name:'ZONA FRANCA',vol:161,time:5,asgn:2},
-    {name:'AFTER GLASS (ENTRADAS)',vol:24,time:5,asgn:0.5},
-    {name:'AFTER GLASS (SALIDAS)',vol:38,time:5,asgn:0.5},
-    {name:'INVENTARIOS CÍCLICOS',vol:10,time:90,asgn:2},
-    {name:'CAMBIOS DE UBICACIÓN PARA OPTIMIZAR ALMACÉN',vol:5,time:60,asgn:1},
-    {name:'CALCÍN-LIMPIEZA',vol:1.8,time:45,asgn:''},
-    {name:'OTROS',vol:'',time:'',asgn:''}
-  ];
-  const DEFAULT_PERSONS=['J. Chinchilla','J. Moreno','J. Pérez','Alejandro Bertoxa','G. Hernández','J.M. del Viejo','A. Martínez','F. Caravaca','R. Lobo','J.A. Masamero','J.L. Matos','G. de Lucas','M.A. Palero','J.M. Ortego Corrochano','J.A. Rocandio'];
-
-  if(!GS_URL){
-    // Sin conexión — cargar defaults
-    DEFAULT_TASKS.forEach(t=>addTask(t));
-    DEFAULT_PERSONS.forEach(n=>addPerson(n));
-    _loading=false;
-    updateTotals(); updateBlockCount(); updateAvailBadge();
-    return;
-  }
-
-  try {
-    const r = await gsCall('getState');
-    const state = r.data;
-    if(state && state.tasks && state.tasks.length && state.persons && state.persons.length){
-      _applyRemoteState(state);
-      _lastHash = JSON.stringify(state);
-    } else {
-      // Primera vez en Sheets — cargar defaults y guardar
-      DEFAULT_TASKS.forEach(t=>addTask(t));
-      DEFAULT_PERSONS.forEach(n=>addPerson(n));
-      _loading=false;
-      updateTotals(); updateBlockCount(); updateAvailBadge();
-      await saveToSheets();
+  if(state && state.tasks && state.tasks.length && state.persons && state.persons.length){
+    // Restore title & avail
+    if(state.pageTitle) document.getElementById('hdr-title').value=state.pageTitle;
+    if(state.avail!=null) document.getElementById('avail-inp').value=state.avail;
+    // Restore column headers
+    if(state.colHeaders){
+      const inputs=[...document.querySelectorAll('thead tr:first-child input')];
+      state.colHeaders.forEach((v,i)=>{ if(inputs[i]) inputs[i].value=v; });
     }
-  } catch(e) {
-    _toast('⚠ No se pudo cargar desde Sheets: '+e.message,'#c0365a');
+    // Restore persons
+    state.persons.forEach(n=>addPerson(n));
+    // Restore tasks (sin bloques aún)
+    state.tasks.forEach(t=>{
+      addTask({name:t.name, vol:t.vol, time:t.time, asgn:t.asgn});
+    });
+    // Now restore blocks — rows are all in DOM now
+    const rows=[...document.querySelectorAll('#main-body tr[data-id]')];
+    state.tasks.forEach((t,i)=>{
+      if(!t.blocks || !t.blocks.length) return;
+      const rowId=rows[i].dataset.id;
+      t.blocks.forEach(b=>{
+        const sid=`${rowId}_${b.h}_${b.half}`;
+        placeBlock(sid,rowId,b.person,b.color,b.span);
+      });
+    });
+    // Restore KPI history
+    if(state.kpiHistory) history=state.kpiHistory;
+  } else {
+    // Primera vez — cargar valores por defecto
     DEFAULT_TASKS.forEach(t=>addTask(t));
     DEFAULT_PERSONS.forEach(n=>addPerson(n));
-    _loading=false;
-    updateTotals(); updateBlockCount(); updateAvailBadge();
   }
 
-  startPolling();
+  _loading = false;
+  updateTotals();
+  updateBlockCount();
+  updateAvailBadge();
+  refreshPersonStatus();
+  saveState(); // guardar estado inicial limpio
 }
 
-// ── RESET ─────────────────────────────────────────────────────────
-async function resetAll(){
-  if(confirm('¿Borrar todos los datos y volver a los valores por defecto?')){
-    if(GS_URL) { try { await gsCall('clearState'); } catch(e){} }
+/* ---- AUTO-SAVE on user interaction ---- */
+// Escuchar cambios de input en todo el documento (debounced)
+let _saveTimer=null;
+document.addEventListener('input',()=>{ clearTimeout(_saveTimer); _saveTimer=setTimeout(saveState,150); });
+
+/* ---- RESET ---- */
+function resetAll(){
+  if(confirm('¿Borrar todos los datos guardados y volver a los valores por defecto?')){
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
     location.reload();
   }
 }
 
-// ── INPUT AUTO-SAVE ────────────────────────────────────────────────
-document.addEventListener('input',()=>{ updateTotals(); scheduleSave(); });
-
-// ── INIT ──────────────────────────────────────────────────────────
-document.getElementById('today-label').textContent=today();
+/* ---- INIT ---- */
+document.getElementById('today-label').textContent = today();
 buildHeaders();
-
-if(!GS_URL) {
-  document.getElementById('cfg-hint').style.display='flex';
-  // still load defaults so UI is usable
-  (async()=>{
-    _loading=true;
-    const DEFAULT_TASKS=[
-      {name:'CAPATAZ',vol:'',time:'',asgn:''},
-      {name:'CARGA DE CAMIONES',vol:12,time:60,asgn:2},
-      {name:'PREPARACIÓN DE PEDIDOS',vol:8,time:90,asgn:0.5},
-      {name:'TERCISTAS SALIDA Y S.E. VIDRIO',vol:2,time:60,asgn:0.5},
-      {name:'TERCISTAS SALIDA EMBALAJE',vol:2,time:30,asgn:0.5},
-      {name:'DESCARGA DE EMBALAJE O VIDRIO',vol:2,time:30,asgn:0.5},
-      {name:'PRE. DE PEDIDOS DE EMBALAJE, PARA S.E Y LÍNEAS DE PRODUCCIÓN',vol:6,time:60,asgn:2},
-      {name:'TERCISTAS ENTRADA',vol:2,time:60,asgn:0.5},
-      {name:'ZONA FRANCA',vol:161,time:5,asgn:2},
-      {name:'AFTER GLASS (ENTRADAS)',vol:24,time:5,asgn:0.5},
-      {name:'AFTER GLASS (SALIDAS)',vol:38,time:5,asgn:0.5},
-      {name:'INVENTARIOS CÍCLICOS',vol:10,time:90,asgn:2},
-      {name:'CAMBIOS DE UBICACIÓN PARA OPTIMIZAR ALMACÉN',vol:5,time:60,asgn:1},
-      {name:'CALCÍN-LIMPIEZA',vol:1.8,time:45,asgn:''},
-      {name:'OTROS',vol:'',time:'',asgn:''}
-    ];
-    const DEFAULT_PERSONS=['J. Chinchilla','J. Moreno','J. Pérez','Alejandro Bertoxa','G. Hernández','J.M. del Viejo','A. Martínez','F. Caravaca','R. Lobo','J.A. Masamero','J.L. Matos','G. de Lucas','M.A. Palero','J.M. Ortego Corrochano','J.A. Rocandio'];
-    DEFAULT_TASKS.forEach(t=>addTask(t));
-    DEFAULT_PERSONS.forEach(n=>addPerson(n));
-    _loading=false;
-    updateTotals(); updateBlockCount(); updateAvailBadge();
-  })();
-} else {
-  loadState();
-}
-
-// ── IMPRIMIR PLANNER ─────────────────────────────────────────────
-function imprimirPlanner(){
-  const titulo = document.getElementById('hdr-title')?.value || 'Planificador de Almacén';
-  const fecha  = document.getElementById('today-label')?.textContent || new Date().toLocaleDateString('es-ES');
-  const avail  = document.getElementById('avail-inp')?.value || '—';
-
-  // Personas
-  const personas = [...document.querySelectorAll('.person-card')].map(c=>({
-    nombre: c.querySelector('input')?.value||'—',
-    color:  c.querySelector('.avatar')?.style.background||'#1B3F7A'
-  }));
-
-  // Tareas y bloques
-  const tareas = [...document.querySelectorAll('#main-body tr[data-id]')].map(tr=>{
-    const slots={};
-    // Primero registrar bloques principales con su span
-    tr.querySelectorAll('.ablock:not([data-extended])').forEach(b=>{
-      const parts=(b.dataset.sid||'').split('_');
-      const rowId=parts[0], h=parts[1], half=parts[2];
-      const span=parseInt(b.dataset.span||1);
-      const HOURS_ALL=[8,9,10,11,12,13,14,15,16,17];
-      const startIdx=HOURS_ALL.indexOf(parseInt(h))*2+parseInt(half);
-      // Marcar todas las celdas que ocupa este bloque
-      for(let i=0;i<span;i++){
-        const idx=startIdx+i;
-        if(idx>=HOURS_ALL.length*2) break;
-        const ch=HOURS_ALL[Math.floor(idx/2)];
-        const chalf=idx%2;
-        const key=`${ch}_${chalf}`;
-        if(!slots[key]) slots[key]=[];
-        if(i===0){
-          slots[key].push({person:b.dataset.person||'?',color:b.dataset.color||'#325d85',span,isStart:true});
-        } else {
-          slots[key].push({person:b.dataset.person||'?',color:b.dataset.color||'#325d85',span,isStart:false});
-        }
-      }
-    });
-    return {
-      nombre: tr.querySelector('.inp-task')?.value||'—',
-      vol:    tr.querySelector('.inp-vol')?.value||'—',
-      time:   tr.querySelector('.inp-time')?.value||'—',
-      asgn:   tr.querySelector('.inp-asgn')?.value||'—',
-      cmt:    tr.querySelector('.c-mt')?.textContent||'—',
-      qty:    tr.querySelector('.c-qty')?.textContent||'—',
-      prio:   tr.classList.contains('priority-row'),
-      slots
-    };
-  });
-
-  const HOURS_P = [8,9,10,11,12,13,14,15,16,17];
-  const colHours = HOURS_P.map(h=>`<th colspan="2" style="background:#1B3F7A;color:#fff;text-align:center;padding:4px 2px;font-size:9px;font-weight:600;border:1px solid #dde3ec">${h}:00</th>`).join('');
-  const colHalfs = HOURS_P.map(()=>[':00',':30'].map(hf=>`<th style="background:#EBF1F9;color:#1a2433;text-align:center;padding:2px;font-size:8px;border:1px solid #dde3ec">${hf}</th>`).join('')).join('');
-
-  const filas = tareas.map(t=>{
-    const celdas = HOURS_P.map(h=>[0,1].map(half=>{
-      const blocks=t.slots[`${h}_${half}`]||[];
-      if(!blocks.length) return `<td style="border:1px solid #eee;min-width:20px;height:22px"></td>`;
-      const content=blocks.map(b=>{
-        const ini=b.person.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
-        const opacity=b.isStart?'1':'0.55';
-        return `<div style="background:${b.color};color:#fff;border-radius:3px;font-size:7px;font-weight:700;padding:1px 2px;text-align:center;margin-bottom:1px;opacity:${opacity}">${ini}</div>`;
-      }).join('');
-      return `<td style="border:1px solid #eee;min-width:20px;padding:1px;vertical-align:top">${content}</td>`;
-    }).join('')).join('');
-    return `<tr style="${t.prio?'background:#fff0f0':''}">
-      <td style="padding:3px 6px;font-size:10px;${t.prio?'color:#c0202a;font-weight:700':'font-weight:600'};white-space:nowrap;border:1px solid #eee;max-width:140px;overflow:hidden;text-overflow:ellipsis">${t.prio?'★ ':''}${t.nombre}</td>
-      <td style="padding:3px 4px;font-size:10px;text-align:center;border:1px solid #eee">${t.vol}</td>
-      <td style="padding:3px 4px;font-size:10px;text-align:center;border:1px solid #eee">${t.time}</td>
-      <td style="padding:3px 4px;font-size:10px;text-align:center;border:1px solid #eee;font-weight:600">${t.asgn}</td>
-      <td style="padding:3px 4px;font-size:10px;text-align:center;border:1px solid #eee">${t.cmt}</td>
-      <td style="padding:3px 4px;font-size:10px;text-align:center;border:1px solid #eee">${t.qty}</td>
-      ${celdas}
-    </tr>`;
-  }).join('');
-
-  const personasHTML = personas.map(p=>{
-    const ini=p.nombre.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
-    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f0f3f6">
-      <div style="width:24px;height:24px;border-radius:50%;background:${p.color};color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ini}</div>
-      <span style="font-size:11px">${p.nombre}</span>
-    </div>`;
-  }).join('');
-
-  const w=window.open('','_blank','width=1200,height=800');
-  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-  <title>${titulo}</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,sans-serif;color:#000;background:#fff;padding:14px}
-    .layout{display:flex;gap:14px;align-items:flex-start}
-    .main{flex:1;overflow-x:auto}
-    .sidebar{width:155px;flex-shrink:0}
-    table{border-collapse:collapse}
-    @media print{body{padding:4px}@page{size:A3 landscape;margin:6mm}}
-  </style></head><body>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1B3F7A;padding-bottom:8px;margin-bottom:10px">
-    <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:#1B3F7A;text-transform:uppercase">Bormioli Luigi · Glassmaker</div>
-      <div style="font-size:17px;font-weight:700;color:#1B3F7A;margin-top:2px">${titulo}</div>
-    </div>
-    <div style="text-align:right;font-size:11px;color:#555">
-      <div>${fecha}</div>
-      <div style="margin-top:2px">Disponibles: <strong>${avail}</strong> personas</div>
-    </div>
-  </div>
-  <div class="layout">
-    <div class="main">
-      <table style="width:100%">
-        <thead>
-          <tr>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 8px;text-align:left;font-size:10px;border:1px solid #dde3ec;min-width:120px">Tarea</th>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 4px;text-align:center;font-size:9px;border:1px solid #dde3ec">Carga</th>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 4px;text-align:center;font-size:9px;border:1px solid #dde3ec">Tiempo</th>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 4px;text-align:center;font-size:9px;border:1px solid #dde3ec">Asgn.</th>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 4px;text-align:center;font-size:9px;border:1px solid #dde3ec">Min.T</th>
-            <th rowspan="2" style="background:#1B3F7A;color:#fff;padding:5px 4px;text-align:center;font-size:9px;border:1px solid #dde3ec">Qty</th>
-            ${colHours}
-          </tr>
-          <tr>${colHalfs}</tr>
-        </thead>
-        <tbody>${filas}</tbody>
-      </table>
-    </div>
-    <div class="sidebar">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1B3F7A;background:#EBF1F9;padding:5px 8px;border:1px solid #c8d8ee;border-bottom:none;border-radius:4px 4px 0 0">👤 Personal</div>
-      <div style="border:1px solid #c8d8ee;border-radius:0 0 4px 4px;padding:6px 8px">${personasHTML||'<div style="font-size:11px;color:#aaa;padding:6px 0">Sin personal</div>'}</div>
-    </div>
-  </div>
-  <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:5px;font-size:9px;color:#888;display:flex;justify-content:space-between">
-    <span>Bormioli Luigi · Planificador de Almacén</span>
-    <span>Generado: ${new Date().toLocaleString('es-ES')}</span>
-  </div>
-  <script>setTimeout(function(){window.print();},500);<\/script>
-  </body></html>`);
-  w.document.close();
-}
+loadState();
 </script>
-
 </body>
 </html>
