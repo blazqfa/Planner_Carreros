@@ -655,12 +655,13 @@ function setupResize(block,startSid,rowId,name,color){
 
 
 function updateAsignadoFromBlocks(rowId){
-  if(_loading) return; // durante la carga, respetamos el valor guardado manualmente
+  if(_loading) return; // durante la carga, respetamos el valor guardado
   const tr=document.querySelector('[data-id="'+rowId+'"]'); if(!tr) return;
-  const blocks=[...tr.querySelectorAll('.ablock:not([data-extended])')];
-  // Contar personas distintas asignadas a esta fila
-  const personas=new Set(blocks.map(b=>b.dataset.person).filter(Boolean));
   const inp=tr.querySelector('.inp-asgn');
+  // Si el usuario ha editado manualmente este campo, no lo sobreescribimos
+  if(inp && inp.dataset.manual==='1') return;
+  const blocks=[...tr.querySelectorAll('.ablock:not([data-extended])')];
+  const personas=new Set(blocks.map(b=>b.dataset.person).filter(Boolean));
   if(inp) { inp.value=personas.size>0 ? personas.size : ''; updateTotals(); scheduleSave(); }
 }
 
@@ -787,11 +788,17 @@ function makeTask(data={}){
     </td>
     <td class="td-data"><input class="inp-cell inp-vol" type="number" value="${data.vol||''}" min="0" step="0.1"></td>
     <td class="td-data"><input class="inp-cell inp-time" type="number" value="${data.time||''}" min="0" step="1"></td>
-    <td class="td-data"><input class="inp-cell inp-asgn" type="number" value="${data.asgn||''}" min="0" step="0.5" style="background:#f0f5ff;font-weight:600" title="Se suma automáticamente al asignar personas"></td>
+    <td class="td-data"><input class="inp-cell inp-asgn" type="number" value="${data.asgn||''}" min="0" step="0.5" style="background:#f0f5ff;font-weight:600" title="Edita manualmente o se actualiza al asignar bloques"></td>
     <td class="td-data c-mt" style="text-align:center">—</td>
     <td class="td-qty c-qty" style="text-align:center">—</td>
     ${makeSlots(id)}`;
-  tr.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{ updateTotals(); scheduleSave(); }));
+  // Marcar inp-asgn como editado manualmente cuando el usuario lo toca
+  const asgnInp=tr.querySelector('.inp-asgn');
+  asgnInp.addEventListener('input',()=>{
+    asgnInp.dataset.manual='1';
+    updateTotals(); scheduleSave();
+  });
+  tr.querySelectorAll('input:not(.inp-asgn)').forEach(i=>i.addEventListener('input',()=>{ updateTotals(); scheduleSave(); }));
   return tr;
 }
 function addTask(data={}){ document.getElementById('main-body').appendChild(makeTask(data)); updateTotals(); scheduleSave(); }
@@ -976,11 +983,8 @@ function collectSnapshot(){
 }
 
 async function saveSnapshot(){
-  // 1. Actualizar columna Asignadas desde bloques reales en cada fila
-  document.querySelectorAll('#main-body tr[data-id]').forEach(tr=>{
-    updateAsignadoFromBlocks(tr.dataset.id);
-  });
-
+  // NO sobreescribimos la columna Asignadas — respetamos el valor que el usuario haya editado manualmente.
+  // collectSnapshot() lee directamente el valor actual del campo inp-asgn tal como está en pantalla.
   const snap=collectSnapshot();
   const ex=kpiHistory.findIndex(h=>h.date===snap.date);
   if(ex>=0) kpiHistory[ex]=snap; else kpiHistory.unshift(snap);
@@ -1103,7 +1107,16 @@ function _applyRemoteState(state){
   }
   state.persons.forEach(n=>addPerson(n));
   state.tasks.forEach(t=>{ addTask({name:t.name,vol:t.vol,time:t.time,asgn:t.asgn}); });
+  // Marcar como manual todos los campos inp-asgn que tengan valor guardado
+  // para que updateAsignadoFromBlocks no los sobreescriba al restaurar bloques
   const rows=[...document.querySelectorAll('#main-body tr[data-id]')];
+  rows.forEach((tr,i)=>{
+    const saved=state.tasks[i]?.asgn;
+    if(saved!==''&&saved!=null&&saved!==undefined){
+      const inp=tr.querySelector('.inp-asgn');
+      if(inp) inp.dataset.manual='1';
+    }
+  });
   state.tasks.forEach((t,i)=>{
     if(!t.blocks||!t.blocks.length) return;
     const rowId=rows[i]?.dataset.id; if(!rowId) return;
