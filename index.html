@@ -37,22 +37,26 @@ body{font-family:var(--font-sans);font-size:12px;color:var(--color-text-primary)
   color:var(--color-text-secondary);background:transparent;border-top:none;border-left:none;border-right:none;font-family:inherit}
 .tab.active{color:var(--c2);border-bottom:2px solid var(--c2);font-weight:500}
 .tab:hover:not(.active){color:var(--c3)}
-.pane{display:none;flex:1;min-height:0;overflow-y:auto}
-.pane.active{display:flex;flex-direction:column}
-#pane-plan.active{display:flex;flex-direction:column;overflow:hidden}
 
-/* LAYOUT */
 /* ── LAYOUT ADAPTATIVO ─────────────────────────────────────────── */
-html,body{height:100%;margin:0;overflow:hidden} /* sin scroll en body */
+html,body{height:100%;margin:0;overflow:hidden}
 #app-shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .hdr{flex-shrink:0}
-.stats-bar{flex-shrink:0}
 .tab-bar{flex-shrink:0}
-#pane-plan{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
-#pane-plan.active{display:flex}
-.layout{display:grid;grid-template-columns:1fr 205px;flex:1;min-height:0;overflow:hidden}
+
+/* Todos los panes ocultos por defecto */
+.pane{display:none;flex:1;min-height:0;overflow:hidden}
+
+/* Pane activo ocupa todo el espacio restante */
+.pane.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+
+/* Plan: layout grid dentro del flex */
+#pane-plan.active .layout{display:grid;grid-template-columns:1fr 205px;flex:1;min-height:0;overflow:hidden}
 .main-scroll{overflow-x:auto;overflow-y:auto;flex:1;min-height:0}
 .sidebar{padding:10px;background:#f7f9fa;border-left:1px solid var(--bd);overflow-y:auto}
+
+/* KPI, Semanal, Cfg: scroll propio */
+#pane-kpi.active,#pane-semana.active,#pane-cfg.active{overflow-y:auto}
 
 /* TABLE */
 table{border-collapse:collapse;font-size:11px;white-space:nowrap}
@@ -204,6 +208,102 @@ tbody tr:hover .td-task{background:#eef7f8}
 
 /* FILA PRIORITARIA */
 tr.priority-row > td { background: #fff0f0 !important; }
+/* ── WEEKLY VIEW ─────────────────────────────────────────────────── */
+.week-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.week-nav{display:flex;align-items:center;gap:6px}
+.week-nav-btn{background:#fff;border:1px solid var(--c3);color:var(--c2);border-radius:5px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.week-nav-btn:hover{background:#eaf5f7}
+.week-label{font-size:13px;font-weight:500;color:var(--c1);min-width:200px;text-align:center}
+
+/* Un único grid que abarca tarjetas + cuadrícula */
+.week-grid{
+  display:grid;
+  grid-template-columns:180px repeat(5,1fr);
+  border:1.5px solid var(--c2);
+  border-radius:8px;
+  overflow:hidden;
+  font-size:11px;
+  width:100%
+}
+
+/* Cabecera de días (fila 1) */
+.wg-head{
+  background:var(--c1);color:#fff;padding:8px 8px;font-weight:600;
+  font-size:11px;text-align:center;border-right:1px solid rgba(255,255,255,.2);
+  cursor:pointer
+}
+.wg-head:first-child{text-align:left;padding-left:12px;cursor:default}
+.wg-head.today-head{background:#b8960a}
+
+/* Tarjetas de resumen (fila 2) — integradas en el mismo grid */
+.wg-summary-blank{
+  background:#f0f4fa;border-right:2px solid var(--c2);
+  border-bottom:2px solid var(--c2);padding:10px 12px;
+  display:flex;align-items:center;
+  font-size:11px;font-weight:600;color:var(--c1)
+}
+.wg-summary-card{
+  background:#fff;border-right:0.5px solid var(--bd);border-bottom:2px solid var(--c2);
+  padding:10px 10px;cursor:pointer;transition:background .12s
+}
+.wg-summary-card:hover{background:#eaf5f7}
+.wg-summary-card.today-sum{background:#fffbe6}
+.wg-summary-card:last-child{border-right:none}
+.wsum-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;margin-bottom:4px}
+.wsum-badge.real{background:#d0f4ec;color:#085041}
+.wsum-badge.prev{background:#e8f0ff;color:#1B3F7A}
+.wsum-kpi-row{display:flex;gap:14px;margin-top:3px}
+.wsum-kpi-item{display:flex;flex-direction:column}
+.wsum-kpi-label{font-size:9px;color:#999}
+.wsum-kpi-val{font-size:14px;font-weight:700;color:var(--c2)}
+
+/* Filas de tareas */
+.wg-task-label{
+  padding:7px 10px;background:#f7f9fa;border-right:2px solid var(--c2);
+  border-bottom:0.5px solid var(--bd);font-weight:500;color:var(--c1);
+  display:flex;align-items:flex-start;gap:5px;word-break:break-word;
+  white-space:normal
+}
+.wg-cell{
+  border-right:0.5px solid var(--bd);border-bottom:0.5px solid var(--bd);
+  padding:6px 8px;cursor:pointer;transition:background .12s;min-height:62px;
+  vertical-align:top
+}
+.wg-cell:hover{background:#e8f7f4}
+.wg-cell.today-col{background:#fffdf0}
+.wg-cell.today-col:hover{background:#fff4c2}
+.wg-cell:last-child{border-right:none}
+.wg-task-label:last-of-type,.wg-cell:nth-last-child(-n+6){border-bottom:none}
+.wg-alert{font-size:9px;padding:2px 5px;border-radius:3px;font-weight:600;white-space:nowrap;display:inline-block;margin-top:3px}
+.wg-alert.ok{background:#d0f4ec;color:#085041}
+.wg-alert.warn{background:#faeeda;color:#633806}
+.wg-alert.bad{background:#fde8e8;color:#791f1f}
+.wg-no-hist{font-size:9px;color:#bbb;font-style:italic}
+.wg-forecast-badge{font-size:9px;background:#e8f0ff;color:#1B3F7A;border-radius:3px;padding:1px 4px;font-weight:600;display:inline-block}
+.wg-person-count{font-size:12px;font-weight:700;color:var(--c2)}
+.wg-min{font-size:10px;color:#777;margin-top:1px}
+.week-legend{display:flex;gap:14px;margin-top:10px;font-size:10px;color:var(--color-text-secondary);flex-wrap:wrap}
+.week-legend span{display:flex;align-items:center;gap:4px}
+.leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* ── VACACIONES ───────────────────────────────────────────────────── */
+.vac-table{width:100%;border-collapse:collapse;font-size:11px}
+.vac-table th{padding:7px 10px;text-align:left;font-weight:500;color:var(--color-text-secondary);border-bottom:2px solid var(--c2);background:#f7f9fa}
+.vac-table td{padding:8px 10px;border-bottom:0.5px solid var(--bd);vertical-align:middle}
+.vac-table tr:hover td{background:#f0f9fc}
+.vac-person-cell{display:flex;align-items:center;gap:8px}
+.vac-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.vac-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
+.vac-badge.active{background:#fde8e8;color:#a32d2d}
+.vac-badge.future{background:#faeeda;color:#7a4800}
+.vac-badge.past{background:#f0f0f0;color:#888}
+.vac-days{font-size:10px;color:var(--color-text-secondary)}
+.vac-empty{padding:32px;text-align:center;color:var(--color-text-secondary);font-size:12px}
+.vac-summary-bar{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.vac-sum-card{background:#fff;border:1px solid var(--bd);border-radius:7px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.vac-sum-label{font-size:10px;color:var(--color-text-secondary)}
+.vac-sum-val{font-size:16px;font-weight:600;color:var(--c1)}
+.print-worker-btn{background:#1B3F7A;color:#fff;border:none;border-radius:5px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:inherit}
+.print-worker-btn:hover{background:#142e5e}
 tr.priority-row > td:first-child { border-left: 3px solid #e05050; }
 tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 .priority-star { color: #e05050; font-size: 13px; cursor: pointer; margin-right: 2px; flex-shrink:0; }
@@ -272,6 +372,7 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
     <button class="btn-sec" onclick="clearAllSlots()">✕ Limpiar franjas</button>
     <button class="btn-sec" onclick="resetAll()" style="color:var(--red);border-color:var(--red)">↺ Restablecer</button>
     <button class="btn-sec" onclick="imprimirPlanner()" style="color:#1a7a3d;border-color:#1a7a3d;font-weight:600;">🖨 Imprimir</button>
+    <button class="print-worker-btn" onclick="imprimirPorTrabajador()">👤 Fichas por trabajador</button>
   </div>
   <div class="totals-bar" style="border:none;flex:1;">
     <div class="tot"><span class="tot-l">Disponibles hoy</span><span class="tot-v" id="s-avail" style="color:var(--c4)">15</span></div>
@@ -287,6 +388,8 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 <!-- TABS -->
 <div class="tab-bar" style="flex-shrink:0">
   <button class="tab active" onclick="showTab('plan',this)">📋 Planificación</button>
+  <button class="tab" onclick="showTab('semana',this)">📅 Vista Semanal</button>
+  <button class="tab" onclick="showTab('vacaciones',this)">🌴 Vacaciones</button>
   <button class="tab" onclick="showTab('kpi',this)">📊 Historial KPI</button>
   <button class="tab" onclick="showTab('cfg',this)">⚙ Configurar tareas</button>
 </div>
@@ -359,10 +462,55 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
       <button class="btn-add-p" onclick="addPerson()">+ Añadir persona</button>
     </div>
   </div>
+</div>
+
+<!-- WEEKLY PANE -->
+<div id="pane-semana" class="pane">
+  <div id="semana-wrap" style="padding:14px;overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- VACACIONES PANE -->
+<div id="pane-vacaciones" class="pane">
+  <div style="padding:16px;overflow-y:auto;flex:1;max-width:860px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--c1)">🌴 Gestión de Vacaciones</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px">Las vacaciones se tienen en cuenta en la vista semanal y bloquean la asignación de tareas</div>
+      </div>
+      <button class="btn-main" onclick="showAddVacForm()" id="btn-add-vac">+ Añadir vacaciones</button>
+    </div>
+
+    <!-- Formulario añadir/editar -->
+    <div id="vac-form" style="display:none;background:#f0f9fc;border:1.5px solid var(--c3);border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--c2);margin-bottom:10px" id="vac-form-title">Nueva entrada de vacaciones</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
+        <div>
+          <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">Persona</label>
+          <select id="vac-person" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">Fecha inicio</label>
+          <input type="date" id="vac-start" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">Fecha fin</label>
+          <input type="date" id="vac-end" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit">
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-main" onclick="saveVacEntry()" style="white-space:nowrap">💾 Guardar</button>
+          <button class="btn-sec" onclick="cancelVacForm()" style="white-space:nowrap">Cancelar</button>
+        </div>
+      </div>
+      <div id="vac-form-error" style="color:var(--red);font-size:11px;margin-top:8px;display:none"></div>
+    </div>
+
+    <!-- Lista de vacaciones -->
+    <div id="vac-list-wrap"></div>
   </div>
 </div>
 
-<!-- KPI PANE -->
 
 <div id="pane-cfg" class="pane">
   <div style="max-width:900px;margin:0 auto;">
@@ -424,7 +572,7 @@ const PCOLORS = [
   '#D85A30','#17a99e','#7B241C','#1A5276','#2C3E50'
 ];
 
-let rowCnt=0, personCnt=0, kpiHistory=[];
+let rowCnt=0, personCnt=0, kpiHistory=[], vacaciones=[];
 let dragPersonName='', dragPersonColor='';
 let selectedBlock=null, selectedRowId=null, selectedSid=null, selectedKPIDate=null;
 let _loading=false, _saveTimer=null, _pollingTimer=null, _lastHash='';
@@ -516,7 +664,423 @@ function showTab(id,btn){
   if(btn) btn.classList.add('active');
   if(id==='kpi') renderKPI();
   if(id==='cfg') renderCfgTasks();
+  if(id==='semana') renderWeekView();
+  if(id==='vacaciones') renderVacaciones();
 }
+
+// ── VACACIONES ────────────────────────────────────────────────────
+let _editVacId=null;
+
+function isOnVacation(personName, dateKey){
+  return vacaciones.some(v=>v.person===personName && dateKey>=v.start && dateKey<=v.end);
+}
+
+function getVacationsForDay(dateKey){
+  return vacaciones.filter(v=>dateKey>=v.start && dateKey<=v.end).map(v=>v.person);
+}
+
+function getPersonsOnVacationWeek(days){
+  // Devuelve un set de personas de vacaciones en alguno de los días
+  const result={};
+  days.forEach(d=>{
+    const dk=fmtDateKey(d);
+    getVacationsForDay(dk).forEach(p=>{
+      if(!result[p]) result[p]=[];
+      result[p].push(dk);
+    });
+  });
+  return result;
+}
+
+function diffDays(start,end){
+  const s=new Date(start), e=new Date(end);
+  return Math.round((e-s)/(1000*60*60*24))+1;
+}
+
+function vacStatus(v){
+  const today=new Date().toISOString().slice(0,10);
+  if(v.end<today) return 'past';
+  if(v.start<=today && v.end>=today) return 'active';
+  return 'future';
+}
+
+function vacStatusLabel(v){
+  const s=vacStatus(v);
+  const labels={past:'Pasadas',active:'En curso',future:'Próximas'};
+  return labels[s];
+}
+
+function showAddVacForm(){
+  _editVacId=null;
+  document.getElementById('vac-form-title').textContent='Nueva entrada de vacaciones';
+  document.getElementById('vac-person').value='';
+  document.getElementById('vac-start').value='';
+  document.getElementById('vac-end').value='';
+  document.getElementById('vac-form-error').style.display='none';
+  document.getElementById('vac-form').style.display='block';
+  populateVacPersonSelect();
+}
+
+function editVacEntry(id){
+  const v=vacaciones.find(x=>x.id===id); if(!v) return;
+  _editVacId=id;
+  document.getElementById('vac-form-title').textContent='Editar vacaciones';
+  populateVacPersonSelect();
+  document.getElementById('vac-person').value=v.person;
+  document.getElementById('vac-start').value=v.start;
+  document.getElementById('vac-end').value=v.end;
+  document.getElementById('vac-form-error').style.display='none';
+  document.getElementById('vac-form').style.display='block';
+  document.getElementById('vac-form').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function cancelVacForm(){
+  _editVacId=null;
+  document.getElementById('vac-form').style.display='none';
+}
+
+function populateVacPersonSelect(){
+  const sel=document.getElementById('vac-person');
+  const persons=[...document.querySelectorAll('.person-card')].map(c=>c.querySelector('input')?.value||'').filter(Boolean);
+  const current=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar persona —</option>';
+  persons.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); });
+  if(current) sel.value=current;
+}
+
+function saveVacEntry(){
+  const person=document.getElementById('vac-person').value.trim();
+  const start=document.getElementById('vac-start').value;
+  const end=document.getElementById('vac-end').value;
+  const errEl=document.getElementById('vac-form-error');
+
+  if(!person){errEl.textContent='Selecciona una persona.';errEl.style.display='block';return;}
+  if(!start||!end){errEl.textContent='Indica fecha de inicio y fin.';errEl.style.display='block';return;}
+  if(end<start){errEl.textContent='La fecha fin no puede ser anterior al inicio.';errEl.style.display='block';return;}
+
+  // Comprobar solapamiento con otras vacaciones de la misma persona (excepto la que editamos)
+  const overlap=vacaciones.find(v=>v.person===person && v.id!==_editVacId && !(end<v.start||start>v.end));
+  if(overlap){errEl.textContent=`Ya hay vacaciones para ${person} del ${overlap.start} al ${overlap.end} que se solapan.`;errEl.style.display='block';return;}
+
+  if(_editVacId){
+    const idx=vacaciones.findIndex(v=>v.id===_editVacId);
+    if(idx>=0) vacaciones[idx]={...vacaciones[idx],person,start,end};
+  } else {
+    vacaciones.push({id:'vac_'+Date.now(),person,start,end});
+  }
+  cancelVacForm();
+  renderVacaciones();
+  scheduleSave();
+}
+
+function deleteVacEntry(id){
+  if(!confirm('¿Eliminar esta entrada de vacaciones?')) return;
+  vacaciones=vacaciones.filter(v=>v.id!==id);
+  renderVacaciones();
+  scheduleSave();
+}
+
+function renderVacaciones(){
+  populateVacPersonSelect();
+  const wrap=document.getElementById('vac-list-wrap'); if(!wrap) return;
+  const today=new Date().toISOString().slice(0,10);
+
+  if(!vacaciones.length){
+    wrap.innerHTML=`<div class="vac-empty">🌴 No hay vacaciones registradas.<br><span style="font-size:10px;color:#aaa">Usa el botón "+ Añadir vacaciones" para registrar períodos.</span></div>`;
+    return;
+  }
+
+  // Resumen
+  const enCurso=vacaciones.filter(v=>vacStatus(v)==='active').length;
+  const proximas=vacaciones.filter(v=>vacStatus(v)==='future').length;
+  const personasAfectadas=new Set(vacaciones.filter(v=>vacStatus(v)!=='past').map(v=>v.person)).size;
+
+  // Ordenar: activas primero, luego futuras por fecha, luego pasadas
+  const sorted=[...vacaciones].sort((a,b)=>{
+    const order={active:0,future:1,past:2};
+    const oa=order[vacStatus(a)], ob=order[vacStatus(b)];
+    if(oa!==ob) return oa-ob;
+    return a.start.localeCompare(b.start);
+  });
+
+  // Agrupar por persona
+  const byPerson={};
+  sorted.forEach(v=>{
+    if(!byPerson[v.person]) byPerson[v.person]=[];
+    byPerson[v.person].push(v);
+  });
+
+  const personColors={};
+  [...document.querySelectorAll('.person-card')].forEach(c=>{
+    const name=c.querySelector('input')?.value||'';
+    const color=c.querySelector('.avatar')?.style.background||'#325d85';
+    if(name) personColors[name]=color;
+  });
+
+  let html=`<div class="vac-summary-bar">
+    <div class="vac-sum-card"><span class="vac-sum-label">En curso ahora</span><span class="vac-sum-val" style="color:var(--red)">${enCurso}</span></div>
+    <div class="vac-sum-card"><span class="vac-sum-label">Próximas</span><span class="vac-sum-val" style="color:#e8a838">${proximas}</span></div>
+    <div class="vac-sum-card"><span class="vac-sum-label">Personas afectadas</span><span class="vac-sum-val">${personasAfectadas}</span></div>
+    <div class="vac-sum-card"><span class="vac-sum-label">Total registros</span><span class="vac-sum-val">${vacaciones.length}</span></div>
+  </div>`;
+
+  html+=`<table class="vac-table">
+    <thead><tr>
+      <th>Persona</th>
+      <th>Inicio</th>
+      <th>Fin</th>
+      <th>Días</th>
+      <th>Estado</th>
+      <th style="text-align:center">Acciones</th>
+    </tr></thead><tbody>`;
+
+  Object.entries(byPerson).forEach(([person,entries])=>{
+    const color=personColors[person]||'#325d85';
+    const initials=person.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    entries.forEach((v,i)=>{
+      const st=vacStatus(v);
+      const stLabel=vacStatusLabel(v);
+      const stClass=st;
+      const days=diffDays(v.start,v.end);
+      const startFmt=new Date(v.start).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+      const endFmt=new Date(v.end).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+      html+=`<tr>
+        <td><div class="vac-person-cell">
+          ${i===0?`<div class="vac-avatar" style="background:${color}">${initials}</div><strong>${person}</strong>`:`<div style="width:26px"></div><span style="color:#888">${person}</span>`}
+        </div></td>
+        <td>${startFmt}</td>
+        <td>${endFmt}</td>
+        <td><span class="vac-days">${days} día${days>1?'s':''}</span></td>
+        <td><span class="vac-badge ${stClass}">${stLabel}</span></td>
+        <td style="text-align:center;white-space:nowrap">
+          <button onclick="editVacEntry('${v.id}')" style="background:transparent;border:1px solid var(--c3);color:var(--c2);border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;margin-right:4px">✏ Editar</button>
+          <button onclick="deleteVacEntry('${v.id}')" style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer">✕ Eliminar</button>
+        </td>
+      </tr>`;
+    });
+  });
+
+  html+=`</tbody></table>`;
+  wrap.innerHTML=html;
+}
+
+// ── VISTA SEMANAL ──────────────────────────────────────────────────
+let _weekOffset=0; // semanas desde hoy (0=semana actual)
+
+function getWeekDays(offset){
+  const now=new Date();
+  const dow=now.getDay()||7; // 1=lun … 7=dom
+  const monday=new Date(now); monday.setDate(now.getDate()-dow+1+offset*7);
+  return Array.from({length:5},(_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
+}
+
+function fmtDate(d){ return d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function fmtDateKey(d){ return d.toISOString().slice(0,10); }
+function dayName(d){ return d.toLocaleDateString('es-ES',{weekday:'long'}); }
+function isToday(d){ return fmtDateKey(d)===new Date().toISOString().slice(0,10); }
+
+function getHistForDay(dateKey){
+  // Busca en kpiHistory el snapshot del día exacto
+  return (kpiHistory||[]).find(h=>h.date===dateKey)||null;
+}
+
+function forecastForDay(d){
+  // Busca históricos del mismo día de la semana (últimas 4 semanas)
+  const dow=d.getDay();
+  const matches=(kpiHistory||[]).filter(h=>{
+    const hd=new Date(h.date); return hd.getDay()===dow;
+  }).slice(0,4);
+  if(!matches.length) return null;
+  const avgAsgn=matches.reduce((s,h)=>s+(h.totalAsgn||0),0)/matches.length;
+  const avgMin=matches.reduce((s,h)=>s+(h.totalMin||0),0)/matches.length;
+  const avgQty=matches.reduce((s,h)=>s+(h.totalQty||0),0)/matches.length;
+  const avgAvail=matches.reduce((s,h)=>s+(h.avail||0),0)/matches.length;
+  const avgCov=matches.reduce((s,h)=>s+(h.cov||0),0)/matches.length;
+  // Personas más frecuentes en ese día
+  const personCount={};
+  matches.forEach(h=>{ (h.persons||[]).forEach(p=>{ personCount[p]=(personCount[p]||0)+1; }); });
+  const topPersons=Object.entries(personCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(e=>e[0]);
+  // Tareas con más carga
+  const taskLoad={};
+  matches.forEach(h=>{ (h.rows||[]).forEach(r=>{ if(r.mt) taskLoad[r.name]=(taskLoad[r.name]||0)+r.mt; }); });
+  return { avgAsgn, avgMin, avgQty, avgAvail, avgCov, topPersons, taskLoad, samples:matches.length };
+}
+
+function renderWeekView(){
+  const days=getWeekDays(_weekOffset);
+  const wrap=document.getElementById('semana-wrap'); if(!wrap) return;
+
+  // ── Cabecera de días ──
+  let gridHTML=`<div class="week-grid">`;
+
+  // Fila 1: etiqueta vacía + días
+  gridHTML+=`<div class="wg-head" style="cursor:default;font-size:12px">Tarea</div>`;
+  days.forEach(d=>{
+    const dk=fmtDateKey(d);
+    const vacDay=getVacationsForDay(dk);
+    const todayCls=isToday(d)?'today-head':'';
+    gridHTML+=`<div class="wg-head ${todayCls}" onclick="openDayFromWeek('${dk}')">
+      <div style="text-transform:capitalize;font-size:10px;opacity:.85">${dayName(d).slice(0,3).toUpperCase()}</div>
+      <div style="font-size:13px;font-weight:700">${fmtDate(d).slice(0,5)}</div>
+      ${vacDay.length?`<div style="font-size:9px;margin-top:2px;opacity:.9">🌴 ${vacDay.length} aus.</div>`:''}
+    </div>`;
+  });
+
+  // Fila 2: tarjetas resumen — misma columna que los días
+  gridHTML+=`<div class="wg-summary-blank">Resumen del día</div>`;
+  days.forEach(d=>{
+    const dk=fmtDateKey(d);
+    const hist=getHistForDay(dk); const fc=forecastForDay(d);
+    const isReal=!!hist; const isFc=!hist&&!!fc;
+    const source=hist||fc;
+    const todayCls=isToday(d)?'today-sum':'';
+    const covVal=isReal?hist.cov:Math.round(fc?.avgCov||0);
+    const covColor=covVal>=90?'#085041':covVal>=70?'#633806':'#791f1f';
+    const vacDay=getVacationsForDay(dk);
+
+    let inner='';
+    if(source){
+      const badge=isReal
+        ?`<span class="wsum-badge real">✓ Real</span>`
+        :isFc?`<span class="wsum-badge prev">🔮 Previsión</span>`:'';
+      const disp=isReal?hist.avail:Math.round(fc?.avgAvail||0);
+      const asgn=isReal?(hist.totalAsgn||0).toFixed(1):(fc?.avgAsgn||0).toFixed(1);
+      inner=`${badge}
+        <div class="wsum-kpi-row">
+          <div class="wsum-kpi-item"><span class="wsum-kpi-label">Disponibles</span><span class="wsum-kpi-val" style="color:var(--c4)">${disp}</span></div>
+          <div class="wsum-kpi-item"><span class="wsum-kpi-label">Asignadas</span><span class="wsum-kpi-val">${asgn}</span></div>
+          <div class="wsum-kpi-item"><span class="wsum-kpi-label">Cobertura</span><span class="wsum-kpi-val" style="color:${covColor}">${covVal}%</span></div>
+        </div>
+        ${vacDay.length?`<div style="margin-top:5px;font-size:9px;background:#fde8e8;color:#a32d2d;border-radius:3px;padding:2px 5px;font-weight:600;display:inline-block">🌴 ${vacDay.length} de vacaciones</div>`:''}`;
+    } else {
+      inner=`<div style="font-size:10px;color:#bbb;margin-top:6px;font-style:italic">Sin histórico</div>
+        ${vacDay.length?`<div style="margin-top:4px;font-size:9px;background:#fde8e8;color:#a32d2d;border-radius:3px;padding:2px 5px;font-weight:600;display:inline-block">🌴 ${vacDay.length} de vacaciones</div>`:''}`;
+    }
+    gridHTML+=`<div class="wg-summary-card ${todayCls}" onclick="openDayFromWeek('${dk}')">${inner}</div>`;
+  });
+
+  // Filas de tareas
+  const tasks=[...document.querySelectorAll('#main-body tr[data-id]')].map(tr=>({
+    name:tr.querySelector('.inp-task')?.value||'—',
+    vol:parseFloat(tr.querySelector('.inp-vol')?.value)||0,
+    time:parseFloat(tr.querySelector('.inp-time')?.value)||0
+  }));
+
+  tasks.forEach((task,ti)=>{
+    const rowBg=ti%2===0?'':'background:#fff';
+    gridHTML+=`<div class="wg-task-label" style="${rowBg}">${task.name}</div>`;
+
+    days.forEach(d=>{
+      const dk=fmtDateKey(d);
+      const hist=getHistForDay(dk); const fc=forecastForDay(d);
+      const todayCls=isToday(d)?'today-col':'';
+      const vacDay=getVacationsForDay(dk);
+      let cellContent='';
+
+      if(hist){
+        const row=(hist.rows||[]).find(r=>r.name===task.name);
+        if(row&&row.blocks&&row.blocks.length){
+          const uniquePersons=new Set(row.blocks.map(b=>b.person)).size;
+          const totalMin=row.blocks.reduce((s,b)=>s+(b.span||1)*30,0);
+          cellContent+=`<div class="wg-person-count">👥 ${uniquePersons} persona${uniquePersons>1?'s':''}</div>`;
+          cellContent+=`<div class="wg-min">${totalMin} min</div>`;
+          if(row.qty>0){
+            const diff=(parseFloat(row.asgn)||0)-row.qty;
+            const cls=diff>=0?'ok':diff>=-0.5?'warn':'bad';
+            const lbl=diff>=0?'✓ OK':diff>=-0.5?'⚠ Justo':'✗ Déficit';
+            cellContent+=`<div class="wg-alert ${cls}">${lbl}</div>`;
+          }
+        } else {
+          cellContent+=`<span class="wg-no-hist">Sin asignar</span>`;
+        }
+      } else if(fc&&fc.taskLoad[task.name]){
+        const estMin=fc.taskLoad[task.name]/fc.samples;
+        const estPersons=task.time>0?Math.ceil(estMin/480):0;
+        const availForDay=Math.max(0,(fc.avgAvail||0)-vacDay.length);
+        cellContent+=`<div class="wg-forecast-badge">≈${estPersons}p prev.</div>`;
+        cellContent+=`<div class="wg-min">~${Math.round(estMin)}min</div>`;
+        if(estPersons>0&&availForDay<estPersons){
+          cellContent+=`<div class="wg-alert bad">⚠ Solo ${availForDay} disp.</div>`;
+        }
+      } else {
+        cellContent+=`<span class="wg-no-hist">—</span>`;
+      }
+      if(vacDay.length){
+        cellContent+=`<div style="font-size:9px;color:#a32d2d;margin-top:3px;font-weight:600">🌴 ${vacDay.length} aus.</div>`;
+      }
+
+      gridHTML+=`<div class="wg-cell ${todayCls}" onclick="openDayFromWeek('${dk}')">${cellContent}</div>`;
+    });
+  });
+  gridHTML+=`</div>`;
+
+  // ── Vacaciones esta semana ──
+  const vacWeek=getPersonsOnVacationWeek(days);
+  let vacWeekHTML='';
+  if(Object.keys(vacWeek).length){
+    const entries=Object.entries(vacWeek).map(([p,dates])=>{
+      const color=getPersonColor(p);
+      return `<div style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #fca5a5;border-radius:6px;padding:5px 10px">
+        <div style="width:22px;height:22px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0">${p.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+        <span style="font-size:11px;font-weight:500">${p}</span>
+        <span style="font-size:10px;color:#888">${dates.length} día${dates.length>1?'s':''}</span>
+      </div>`;
+    }).join('');
+    vacWeekHTML=`<div style="margin-top:12px;padding:10px 12px;background:#fff5f5;border:1px solid #fca5a5;border-radius:7px">
+      <div style="font-size:11px;font-weight:600;color:#a32d2d;margin-bottom:8px">🌴 Personal de vacaciones esta semana</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${entries}</div>
+    </div>`;
+  }
+
+  const legendHTML=`<div class="week-legend">
+    <span><span class="leg-sq" style="background:#d0f4ec;border:1px solid #27AE60"></span>Cobertura OK ≥90%</span>
+    <span><span class="leg-sq" style="background:#faeeda;border:1px solid #e8a838"></span>Justo 70-90%</span>
+    <span><span class="leg-sq" style="background:#fde8e8;border:1px solid #C0392B"></span>Déficit</span>
+    <span><span class="wg-forecast-badge">🔮</span> Previsión (${(kpiHistory||[]).length} históricos)</span>
+    <span style="margin-left:auto;font-size:10px;color:var(--c3)">Clic en día o celda → abre su planificación</span>
+  </div>`;
+
+  const weekStart=fmtDate(days[0]), weekEnd=fmtDate(days[4]);
+  wrap.innerHTML=`
+    <div class="week-header">
+      <div class="week-nav">
+        <button class="week-nav-btn" onclick="_weekOffset--;renderWeekView()">← Anterior</button>
+        <div class="week-label">${_weekOffset===0?'Semana actual':_weekOffset>0?`+${_weekOffset} sem.`:_weekOffset+' sem.'} · ${weekStart} – ${weekEnd}</div>
+        <button class="week-nav-btn" onclick="_weekOffset++;renderWeekView()">Siguiente →</button>
+        <button class="week-nav-btn" onclick="_weekOffset=0;renderWeekView()" style="color:var(--c4);border-color:var(--c4)">Hoy</button>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-left:auto">${(kpiHistory||[]).length} días en historial · previsión por día de semana</div>
+    </div>
+    ${gridHTML}
+    ${vacWeekHTML}
+    ${legendHTML}
+  `;
+}
+function getPersonColor(name){
+  const cards=[...document.querySelectorAll('.person-card')];
+  const card=cards.find(c=>c.querySelector('input')?.value===name);
+  return card?card.querySelector('.avatar')?.style.background||'#325d85':'#325d85';
+}
+
+function openDayFromWeek(dateKey){
+  // Buscar si hay historial para ese día
+  const hist=getHistForDay(dateKey);
+  const d=new Date(dateKey);
+  const label=d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(hist){
+    if(confirm(`Ir a la planificación guardada del ${label}?\n\nSe cargará el estado guardado de ese día.`)){
+      _applyRemoteState(hist.fullState||null);
+      if(!hist.fullState) showToast('⚠ Este histórico no tiene estado completo guardado. Solo KPI.',4000);
+    }
+  } else {
+    // Cambiar a pestaña de planificación del día
+    const btn=document.querySelector('[onclick*="showTab(\'plan\'"]');
+    showTab('plan',btn);
+    showToast(`📅 Planificación para ${label} — sin histórico previo para este día`,3000);
+  }
+}
+
+
 
 // ── AVAIL BADGE ───────────────────────────────────────────────────
 function updateAvailBadge(){
@@ -1000,9 +1564,9 @@ function collectSnapshot(){
 }
 
 async function saveSnapshot(){
-  // NO sobreescribimos la columna Asignadas — respetamos el valor que el usuario haya editado manualmente.
-  // collectSnapshot() lee directamente el valor actual del campo inp-asgn tal como está en pantalla.
+  // Guardar estado completo dentro del snapshot para poder reconstruir el día desde la vista semanal
   const snap=collectSnapshot();
+  snap.fullState=collectState(); // estado completo del planificador ese día
   const ex=kpiHistory.findIndex(h=>h.date===snap.date);
   if(ex>=0) kpiHistory[ex]=snap; else kpiHistory.unshift(snap);
 
@@ -1087,7 +1651,7 @@ function collectState(){
   });
   const persons=[]; document.querySelectorAll('.person-card').forEach(c=>persons.push(c.querySelector('input').value));
   const colHeaders=[]; document.querySelectorAll('thead tr:first-child input').forEach(i=>colHeaders.push(i.value));
-  return{tasks,persons,colHeaders,pageTitle:document.getElementById('hdr-title').value,avail:document.getElementById('avail-inp').value,kpiHistory};
+  return{tasks,persons,colHeaders,pageTitle:document.getElementById('hdr-title').value,avail:document.getElementById('avail-inp').value,kpiHistory,vacaciones};
 }
 
 // ── SAVE ──────────────────────────────────────────────────────────
@@ -1140,6 +1704,7 @@ function _applyRemoteState(state){
     t.blocks.forEach(b=>{ placeBlock(`${rowId}_${b.h}_${b.half}`,rowId,b.person,b.color,b.span); });
   });
   if(state.kpiHistory) kpiHistory=state.kpiHistory;
+  if(state.vacaciones) vacaciones=state.vacaciones;
   _loading=false;
   updateTotals(); updateBlockCount(); updateAvailBadge(); refreshPersonStatus();
 }
@@ -1217,7 +1782,179 @@ buildHeaders();
 // URL ya configurada — arrancar directamente
 loadState();
 
-// ── IMPRIMIR PLANNER ─────────────────────────────────────────────
+// ── IMPRIMIR POR TRABAJADOR ────────────────────────────────────────
+function imprimirPorTrabajador(){
+  const titulo=document.getElementById('hdr-title')?.value||'Planificador de Almacén';
+  const fecha=document.getElementById('today-label')?.textContent||new Date().toLocaleDateString('es-ES');
+  const HOURS_ALL=[8,9,10,11,12,13,14,15,16,17];
+
+  // Recopilar datos de personas y sus bloques
+  const personas=[...document.querySelectorAll('.person-card')].map(c=>({
+    nombre:c.querySelector('input')?.value||'—',
+    color:c.querySelector('.avatar')?.style.background||'#1B3F7A',
+    initials:c.querySelector('.avatar')?.textContent||'?'
+  }));
+
+  // Recopilar bloques por persona y tarea
+  const byPerson={};
+  personas.forEach(p=>{ byPerson[p.nombre]={info:p,tareas:[]}; });
+
+  [...document.querySelectorAll('#main-body tr[data-id]')].forEach(tr=>{
+    const taskName=tr.querySelector('.inp-task')?.value||'—';
+    const taskVol=tr.querySelector('.inp-vol')?.value||'';
+    const taskTime=tr.querySelector('.inp-time')?.value||'';
+
+    // Agrupar bloques por persona para esta tarea
+    const personBlocks={};
+    tr.querySelectorAll('.ablock:not([data-extended])').forEach(b=>{
+      const name=b.dataset.person||'—';
+      if(!personBlocks[name]) personBlocks[name]=[];
+      const parts=(b.dataset.sid||'').split('_');
+      const h=parseInt(parts[1]), half=parseInt(parts[2]);
+      const span=parseInt(b.dataset.span||1);
+      const startMin=(h-8)*60+half*30;
+      const endMin=startMin+span*30;
+      const fmt=m=>{ const hh=Math.floor(m/60)+8; const mm=m%60; return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`; };
+      personBlocks[name].push({inicio:fmt(startMin),fin:fmt(endMin),minutos:span*30});
+    });
+
+    Object.entries(personBlocks).forEach(([pname,blocks])=>{
+      if(!byPerson[pname]) byPerson[pname]={info:{nombre:pname,color:'#325d85',initials:pname.split(' ').map(w=>w[0]).join('')},tareas:[]};
+      // Fusionar franjas contiguas
+      blocks.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+      byPerson[pname].tareas.push({taskName,taskVol,taskTime,blocks});
+    });
+  });
+
+  // Filtrar personas que tienen tareas
+  const activos=Object.values(byPerson).filter(p=>p.tareas.length>0);
+  if(!activos.length){ alert('No hay bloques asignados para imprimir fichas.'); return; }
+
+  const pageStyle=`
+    @page{size:A4 portrait;margin:14mm 12mm}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a}
+    .worker-page{page-break-after:always;padding:0}
+    .worker-page:last-child{page-break-after:avoid}
+    .wp-header{display:flex;align-items:center;gap:14px;padding:10px 14px;background:#1B3F7A;color:#fff;border-radius:6px 6px 0 0;margin-bottom:0}
+    .wp-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,.4)}
+    .wp-name{font-size:18px;font-weight:700}
+    .wp-meta{font-size:11px;opacity:.8;margin-top:2px}
+    .wp-date{margin-left:auto;text-align:right}
+    .wp-date-label{font-size:10px;opacity:.7}
+    .wp-date-val{font-size:13px;font-weight:600}
+    .wp-body{border:1.5px solid #1B3F7A;border-top:none;border-radius:0 0 6px 6px;overflow:hidden}
+    .wp-timeline{display:grid;grid-template-columns:repeat(20,1fr);border-bottom:1px solid #dde3ec;background:#f7f9fc}
+    .wp-tl-cell{text-align:center;font-size:8px;color:#666;padding:3px 0;border-right:0.5px solid #e0e8f0}
+    .wp-tl-hour{text-align:center;font-size:8px;font-weight:600;color:#1B3F7A;padding:2px 0;border-right:0.5px solid #e0e8f0;grid-column:span 2;background:#e8f0fb}
+    .task-row{border-bottom:0.5px solid #eef1f5}
+    .task-row:last-child{border-bottom:none}
+    .task-header{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f7f9fc;border-bottom:0.5px solid #eef1f5}
+    .task-name{font-weight:600;font-size:12px;color:#1B3F7A;flex:1}
+    .task-meta{font-size:10px;color:#666;white-space:nowrap}
+    .task-gantt{display:grid;grid-template-columns:repeat(20,1fr);height:24px;position:relative;background:#fff}
+    .gantt-cell{border-right:0.5px solid #f0f0f0;height:100%}
+    .gantt-cell.hr{border-right:1px solid #dde3ec}
+    .gantt-block{position:absolute;top:3px;bottom:3px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff}
+    .task-times{padding:3px 10px 6px;font-size:10px;color:#555;display:flex;gap:12px;flex-wrap:wrap}
+    .time-chip{background:#eaf5f7;border-radius:3px;padding:2px 6px;white-space:nowrap}
+    .wp-footer{padding:8px 12px;background:#f7f9fc;border-top:1px solid #dde3ec;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#888}
+    .wp-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px;border-bottom:0.5px solid #eef1f5;background:#fafbfd}
+    .wp-sum-item{display:flex;flex-direction:column;gap:2px}
+    .wp-sum-label{font-size:9px;color:#999}
+    .wp-sum-val{font-size:15px;font-weight:700;color:#1B3F7A}
+  `;
+
+  let pagesHTML='';
+  activos.forEach(p=>{
+    const totalTareas=p.tareas.length;
+    const totalMin=p.tareas.reduce((s,t)=>s+t.blocks.reduce((ss,b)=>ss+b.minutos,0),0);
+    const inicioGlobal=p.tareas.flatMap(t=>t.blocks).map(b=>b.inicio).sort()[0]||'—';
+    const finGlobal=p.tareas.flatMap(t=>t.blocks).map(b=>b.fin).sort().reverse()[0]||'—';
+
+    // Timeline header (horas 8-17)
+    let tlHoursHTML='';
+    HOURS_ALL.forEach(h=>{ tlHoursHTML+=`<div class="wp-tl-hour">${String(h).padStart(2,'0')}h</div>`; });
+    let tlHalfHTML='';
+    HOURS_ALL.forEach(h=>{ tlHalfHTML+=`<div class="wp-tl-cell">:00</div><div class="wp-tl-cell">:30</div>`; });
+
+    // Tareas del trabajador
+    let tareasHTML='';
+    p.tareas.forEach(t=>{
+      const totalTaskMin=t.blocks.reduce((s,b)=>s+b.minutos,0);
+      // Gantt
+      let ganttCells='';
+      for(let i=0;i<20;i++){
+        const isHrBoundary=(i+1)%2===0;
+        ganttCells+=`<div class="gantt-cell${isHrBoundary?' hr':''}" style="grid-column:${i+1}"></div>`;
+      }
+      // Bloques sobre el gantt
+      let ganttBlocks='';
+      t.blocks.forEach(b=>{
+        const [sh,sm]=b.inicio.split(':').map(Number);
+        const [eh,em]=b.fin.split(':').map(Number);
+        const startSlot=(sh-8)*2+(sm===30?1:0);
+        const endSlot=(eh-8)*2+(em===30?1:0);
+        const left=(startSlot/20*100).toFixed(2)+'%';
+        const width=((endSlot-startSlot)/20*100).toFixed(2)+'%';
+        ganttBlocks+=`<div class="gantt-block" style="left:${left};width:${width};background:${p.info.color}">${b.inicio}-${b.fin}</div>`;
+      });
+
+      const timesHTML=t.blocks.map(b=>`<span class="time-chip">⏱ ${b.inicio} – ${b.fin} (${b.minutos}min)</span>`).join('');
+
+      tareasHTML+=`<div class="task-row">
+        <div class="task-header">
+          <div class="task-name">${t.taskName}</div>
+          <div class="task-meta">${totalTaskMin}min total${t.taskVol?` · Vol: ${t.taskVol}`:''}${t.taskTime?` · T.unit: ${t.taskTime}min`:''}</div>
+        </div>
+        <div class="task-gantt" style="position:relative">${ganttCells}${ganttBlocks}</div>
+        <div class="task-times">${timesHTML}</div>
+      </div>`;
+    });
+
+    pagesHTML+=`<div class="worker-page">
+      <div class="wp-header">
+        <div class="wp-avatar" style="background:${p.info.color}">${p.info.initials}</div>
+        <div>
+          <div class="wp-name">${p.info.nombre}</div>
+          <div class="wp-meta">${titulo}</div>
+        </div>
+        <div class="wp-date">
+          <div class="wp-date-label">Jornada</div>
+          <div class="wp-date-val">${fecha}</div>
+        </div>
+      </div>
+      <div class="wp-body">
+        <div class="wp-summary">
+          <div class="wp-sum-item"><span class="wp-sum-label">Tareas asignadas</span><span class="wp-sum-val">${totalTareas}</span></div>
+          <div class="wp-sum-item"><span class="wp-sum-label">Minutos totales</span><span class="wp-sum-val">${totalMin}</span></div>
+          <div class="wp-sum-item"><span class="wp-sum-label">Horario</span><span class="wp-sum-val" style="font-size:13px">${inicioGlobal} – ${finGlobal}</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(20,1fr);border-bottom:1px solid #dde3ec">
+          ${tlHoursHTML}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(20,1fr);border-bottom:2px solid #dde3ec;background:#f0f5fc">
+          ${tlHalfHTML}
+        </div>
+        ${tareasHTML}
+      </div>
+      <div class="wp-footer">
+        <span>Bormioli Luigi · ${titulo}</span>
+        <span>Generado: ${new Date().toLocaleString('es-ES')}</span>
+      </div>
+    </div>`;
+  });
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Fichas por trabajador · ${fecha}</title>
+  <style>${pageStyle}</style></head><body>
+  ${pagesHTML}
+  <script>setTimeout(function(){window.print();},600);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
 function imprimirPlanner(){
   const titulo = document.getElementById('hdr-title')?.value || 'Planificador de Almacén';
   const fecha  = document.getElementById('today-label')?.textContent || new Date().toLocaleDateString('es-ES');
