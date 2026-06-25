@@ -37,18 +37,33 @@ body{font-family:var(--font-sans);font-size:12px;color:var(--color-text-primary)
   color:var(--color-text-secondary);background:transparent;border-top:none;border-left:none;border-right:none;font-family:inherit}
 .tab.active{color:var(--c2);border-bottom:2px solid var(--c2);font-weight:500}
 .tab:hover:not(.active){color:var(--c3)}
-.pane{display:none}.pane.active{display:block}
+.pane{display:none;flex:1;min-height:0;overflow-y:auto}
+.pane.active{display:flex;flex-direction:column}
+#pane-plan.active{display:flex;flex-direction:column;overflow:hidden}
 
 /* LAYOUT */
-.layout{display:grid;grid-template-columns:1fr 205px}
-.main-scroll{overflow-x:auto;overflow-y:auto;max-height:540px}
-.sidebar{padding:10px;background:#f7f9fa;border-left:1px solid var(--bd);overflow-y:auto;max-height:540px}
+/* ── LAYOUT ADAPTATIVO ─────────────────────────────────────────── */
+html,body{height:100%;margin:0;overflow:hidden} /* sin scroll en body */
+#app-shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.hdr{flex-shrink:0}
+.stats-bar{flex-shrink:0}
+.tab-bar{flex-shrink:0}
+#pane-plan{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+#pane-plan.active{display:flex}
+.layout{display:grid;grid-template-columns:1fr 205px;flex:1;min-height:0;overflow:hidden}
+.main-scroll{overflow-x:auto;overflow-y:auto;flex:1;min-height:0}
+.sidebar{padding:10px;background:#f7f9fa;border-left:1px solid var(--bd);overflow-y:auto}
 
 /* TABLE */
 table{border-collapse:collapse;font-size:11px;white-space:nowrap}
-thead th{padding:5px 6px;font-weight:500;color:var(--color-text-secondary);border-bottom:2px solid var(--c2);
-  background:#fff;position:sticky;top:0;z-index:4}
-.th-task{min-width:175px;text-align:left;position:sticky;left:0;z-index:5;background:#fff;border-right:2px solid var(--c2)}
+/* Fila 1 thead — títulos de columna */
+thead tr:nth-child(1) th{padding:5px 6px;font-weight:500;color:var(--color-text-secondary);
+  border-bottom:2px solid var(--c2);background:#fff;position:sticky;top:0;z-index:4}
+/* Fila 2 thead — horas */
+thead tr:nth-child(2) th{position:sticky;top:29px;z-index:4}
+/* Fila 3 thead — medias horas */
+thead tr:nth-child(3) th{position:sticky;top:51px;z-index:4}
+.th-task{min-width:175px;text-align:left;position:sticky;left:0;z-index:6;background:#fff;border-right:2px solid var(--c2)}
 .th-data{width:52px;text-align:center;border-right:0.5px solid var(--bd)}
 .th-qty{width:52px;text-align:center;border-right:2px solid var(--c2)}
 .th-hr{background:#e8f0fb;color:#1a2433;text-align:center;font-size:10px;font-weight:600;border:1px solid #c8d8ee;
@@ -196,6 +211,7 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 </style>
 </head>
 <body>
+<div id="app-shell">
 
 <!-- HEADER -->
 <div class="hdr">
@@ -250,7 +266,7 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 </div>
 
 <!-- BARRA RESUMEN + ACCIONES — encima de las pestañas -->
-<div style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bd);border-top:1px solid var(--bd);flex-wrap:wrap;">
+<div style="display:flex;align-items:center;gap:0;border-bottom:1px solid var(--bd);border-top:1px solid var(--bd);flex-wrap:wrap;flex-shrink:0;">
   <div class="act-bar" style="border:none;border-right:1px solid var(--bd);flex-shrink:0;padding:4px 10px;gap:6px;">
     <button class="btn-main" onclick="addTask()">+ Nueva tarea</button>
     <button class="btn-sec" onclick="clearAllSlots()">✕ Limpiar franjas</button>
@@ -269,7 +285,7 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 </div>
 
 <!-- TABS -->
-<div class="tab-bar">
+<div class="tab-bar" style="flex-shrink:0">
   <button class="tab active" onclick="showTab('plan',this)">📋 Planificación</button>
   <button class="tab" onclick="showTab('kpi',this)">📊 Historial KPI</button>
   <button class="tab" onclick="showTab('cfg',this)">⚙ Configurar tareas</button>
@@ -414,7 +430,8 @@ let selectedBlock=null, selectedRowId=null, selectedSid=null, selectedKPIDate=nu
 let _loading=false, _saveTimer=null, _pollingTimer=null, _lastHash='';
 
 // ── GS URL ────────────────────────────────────────────────────────
-let GS_URL = localStorage.getItem('planner_gs_url') || '';
+let GS_URL = 'https://script.google.com/macros/s/AKfycbxBcEwazyDdjjIZxvleozadbufSHjTSHX-Ei-8kW388-qclbaH9TuNImngctKeH2nH_TA/exec';
+localStorage.setItem('planner_gs_url', GS_URL); // sincronizar localStorage también
 
 // ── CONFIG MODAL ──────────────────────────────────────────────────
 function showConfigModal() {
@@ -1197,37 +1214,8 @@ document.addEventListener('input',()=>{ updateTotals(); scheduleSave(); });
 document.getElementById('today-label').textContent=today();
 buildHeaders();
 
-if(!GS_URL) {
-  document.getElementById('cfg-hint').style.display='flex';
-  // still load defaults so UI is usable
-  (async()=>{
-    _loading=true;
-    const DEFAULT_TASKS=[
-      {name:'CAPATAZ',vol:'',time:'',asgn:''},
-      {name:'CARGA DE CAMIONES',vol:12,time:60,asgn:2},
-      {name:'PREPARACIÓN DE PEDIDOS',vol:8,time:90,asgn:0.5},
-      {name:'TERCISTAS SALIDA Y S.E. VIDRIO',vol:2,time:60,asgn:0.5},
-      {name:'TERCISTAS SALIDA EMBALAJE',vol:2,time:30,asgn:0.5},
-      {name:'DESCARGA DE EMBALAJE O VIDRIO',vol:2,time:30,asgn:0.5},
-      {name:'PRE. DE PEDIDOS DE EMBALAJE, PARA S.E Y LÍNEAS DE PRODUCCIÓN',vol:6,time:60,asgn:2},
-      {name:'TERCISTAS ENTRADA',vol:2,time:60,asgn:0.5},
-      {name:'ZONA FRANCA',vol:161,time:5,asgn:2},
-      {name:'AFTER GLASS (ENTRADAS)',vol:24,time:5,asgn:0.5},
-      {name:'AFTER GLASS (SALIDAS)',vol:38,time:5,asgn:0.5},
-      {name:'INVENTARIOS CÍCLICOS',vol:10,time:90,asgn:2},
-      {name:'CAMBIOS DE UBICACIÓN PARA OPTIMIZAR ALMACÉN',vol:5,time:60,asgn:1},
-      {name:'CALCÍN-LIMPIEZA',vol:1.8,time:45,asgn:''},
-      {name:'OTROS',vol:'',time:'',asgn:''}
-    ];
-    const DEFAULT_PERSONS=['J. Chinchilla','J. Moreno','J. Pérez','Alejandro Bertoxa','G. Hernández','J.M. del Viejo','A. Martínez','F. Caravaca','R. Lobo','J.A. Masamero','J.L. Matos','G. de Lucas','M.A. Palero','J.M. Ortego Corrochano','J.A. Rocandio'];
-    DEFAULT_TASKS.forEach(t=>addTask(t));
-    DEFAULT_PERSONS.forEach(n=>addPerson(n));
-    _loading=false;
-    updateTotals(); updateBlockCount(); updateAvailBadge(); refreshPersonStatus();
-  })();
-} else {
-  loadState();
-}
+// URL ya configurada — arrancar directamente
+loadState();
 
 // ── IMPRIMIR PLANNER ─────────────────────────────────────────────
 function imprimirPlanner(){
@@ -1405,5 +1393,6 @@ function imprimirPlanner(){
 }
 </script>
 
+</div><!-- /app-shell -->
 </body>
 </html>
