@@ -333,7 +333,7 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
       <input class="avail-inp" id="avail-inp" type="number" min="0" max="99" value="15" oninput="updateAvailBadge()">
       <span class="avail-badge" id="avail-badge"></span>
     </div>
-    <button class="btn-sec" style="padding:5px 10px" onclick="saveSnapshot()">💾 Guardar KPI</button>
+    <button class="btn-sec" id="btn-guardar-kpi" style="padding:5px 10px" onclick="saveSnapshot()">💾 Guardar KPI</button>
     <button class="btn-sec" style="padding:5px 10px;font-size:10px;" onclick="showConfigModal()">⚙ Sheets</button>
   </div>
 </div>
@@ -611,13 +611,26 @@ async function testConfig() {
 
 // ── API ───────────────────────────────────────────────────────────
 async function gsCall(action, payload={}) {
-  if (!GS_URL) { showConfigModal(); throw new Error('Sin URL'); }
-  const res = await fetch(GS_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({action, ...payload})
-  });
-  const j = await res.json();
-  if (j.error) throw new Error(j.error);
+  if (!GS_URL) { showConfigModal(); throw new Error('Sin URL configurada'); }
+  let res, text;
+  try {
+    res = await fetch(GS_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action, ...payload})
+    });
+    text = await res.text();
+  } catch(e) {
+    throw new Error('Error de red: ' + e.message);
+  }
+  // Intentar parsear JSON
+  let j;
+  try { j = JSON.parse(text); }
+  catch(e) {
+    console.error('[gsCall] Respuesta no-JSON para action=' + action + ':', text.slice(0,200));
+    throw new Error('Respuesta inesperada del servidor. Revisa el script de Apps Script.');
+  }
+  if (j && j.error) throw new Error(j.error);
   return j;
 }
 
@@ -1564,25 +1577,45 @@ function collectSnapshot(){
 }
 
 async function saveSnapshot(){
-  // Guardar estado completo dentro del snapshot para poder reconstruir el día desde la vista semanal
-  const snap=collectSnapshot();
-  snap.fullState=collectState(); // estado completo del planificador ese día
-  const ex=kpiHistory.findIndex(h=>h.date===snap.date);
-  if(ex>=0) kpiHistory[ex]=snap; else kpiHistory.unshift(snap);
+  const btn = document.getElementById('btn-guardar-kpi');
+  const origHTML = btn ? btn.innerHTML : '💾 Guardar KPI';
+  const origStyle = btn ? btn.getAttribute('style') || '' : '';
 
-  const btn=document.querySelector('[onclick="saveSnapshot()"]');
-  btn.innerHTML='⏳ Guardando…';
+  // Recoger snapshot con el estado actual (respetando valores manuales de Asignadas)
+  const snap = collectSnapshot();
+  snap.fullState = collectState();
+
+  const ex = kpiHistory.findIndex(h => h.date === snap.date);
+  if(ex >= 0) kpiHistory[ex] = snap; else kpiHistory.unshift(snap);
+
+  if(btn){ btn.innerHTML = '⏳ Guardando…'; btn.disabled = true; }
+
   try {
-    // 2. Guardar KPI snapshot
-    await gsCall('saveKPI',{snap});
-    // 3. Guardar estado completo del planner (tareas, bloques, asignadas, personas…)
-    const state=collectState();
-    await gsCall('saveState',{state});
-    _lastHash=JSON.stringify(state);
+    // 1. Guardar KPI
+    const r1 = await gsCall('saveKPI', {snap});
+    console.log('[KPI] saveKPI ok', r1);
 
-    btn.innerHTML='✓ Guardado'; btn.style.cssText='background:#d0f4ec;color:#085041;border:1px solid var(--c4);border-radius:5px;padding:5px 10px;font-size:11px;cursor:pointer';
-    setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },1800);
-  } catch(e) { btn.innerHTML='❌ Error'; setTimeout(()=>{ btn.innerHTML='💾 Guardar KPI'; btn.removeAttribute('style'); },2000); }
+    // 2. Guardar estado completo
+    const state = collectState();
+    const r2 = await gsCall('saveState', {state});
+    console.log('[KPI] saveState ok', r2);
+    _lastHash = JSON.stringify(state);
+
+    if(btn){
+      btn.innerHTML = '✓ Guardado';
+      btn.style.cssText = origStyle + ';background:#d0f4ec;color:#085041;border-color:var(--c4)';
+      setTimeout(()=>{ btn.innerHTML = origHTML; btn.setAttribute('style', origStyle); btn.disabled = false; }, 2000);
+    }
+    _toast('KPI guardado correctamente para ' + snap.date, '#1a7a3d');
+  } catch(e) {
+    console.error('[KPI] Error al guardar:', e);
+    if(btn){
+      btn.innerHTML = '❌ Error — reintenta';
+      btn.style.cssText = origStyle + ';background:#fde8e8;color:#a32d2d;border-color:#C0392B';
+      setTimeout(()=>{ btn.innerHTML = origHTML; btn.setAttribute('style', origStyle); btn.disabled = false; }, 3500);
+    }
+    _toast('Error al guardar KPI: ' + e.message, '#C0392B');
+  }
 }
 
 function deleteSelectedKPI(){
