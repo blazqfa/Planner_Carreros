@@ -1611,7 +1611,12 @@ async function saveSnapshot(){
 
   // Recoger snapshot con el estado actual (respetando valores manuales de Asignadas)
   const snap = collectSnapshot();
-  snap.fullState = collectState();
+
+  // fullState guarda el estado del día SIN kpiHistory para evitar referencia circular
+  // (kpiHistory contiene snaps que a su vez tendrían fullState → kpiHistory → bucle)
+  const fullStateData = collectState();
+  const { kpiHistory: _ignored, ...fullStateWithoutHistory } = fullStateData;
+  snap.fullState = fullStateWithoutHistory;
 
   const ex = kpiHistory.findIndex(h => h.date === snap.date);
   if(ex >= 0) kpiHistory[ex] = snap; else kpiHistory.unshift(snap);
@@ -1726,9 +1731,17 @@ async function saveToSheets(){
   if(!GS_URL||_loading) return;
   try {
     const state=collectState();
-    const body=JSON.stringify(state);
+    // Al guardar el estado global, quitar fullState de cada entrada de kpiHistory
+    // para no duplicar datos y mantener el payload ligero
+    const stateToSend={
+      ...state,
+      kpiHistory:(state.kpiHistory||[]).map(h=>{
+        const {fullState,...rest}=h; return rest;
+      })
+    };
+    const body=JSON.stringify(stateToSend);
     if(body===_lastHash) return; // no changes
-    await gsCall('saveState',{state});
+    await gsCall('saveState',{state:stateToSend});
     _lastHash=body;
   } catch(e){ console.warn('Save error:',e.message); }
 }
