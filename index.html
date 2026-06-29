@@ -60,13 +60,19 @@ html,body{height:100%;margin:0;overflow:hidden}
 
 /* TABLE */
 table{border-collapse:collapse;font-size:11px;white-space:nowrap}
-/* Fila 1 thead — títulos de columna */
-thead tr:nth-child(1) th{padding:5px 6px;font-weight:500;color:var(--color-text-secondary);
-  border-bottom:2px solid var(--c2);background:#fff;position:sticky;top:0;z-index:4}
-/* Fila 2 thead — horas */
-thead tr:nth-child(2) th{position:sticky;top:29px;z-index:4}
-/* Fila 3 thead — medias horas */
-thead tr:nth-child(3) th{position:sticky;top:51px;z-index:4}
+
+/* ── CABECERAS STICKY ── */
+/* Los tops exactos los calcula buildHeaders() con requestAnimationFrame
+   para que cuadren siempre con la altura real de cada fila */
+thead tr th{
+  position:sticky;top:0;z-index:4;
+  background:#fff;
+}
+thead tr:nth-child(1) th{
+  padding:6px 6px;font-weight:500;color:var(--color-text-secondary);
+  z-index:5;
+}
+/* La línea separadora azul fija se aplica por JS a la última fila del thead */
 .th-task{min-width:175px;text-align:left;position:sticky;left:0;z-index:6;background:#fff;border-right:2px solid var(--c2)}
 .th-data{width:52px;text-align:center;border-right:0.5px solid var(--bd)}
 .th-qty{width:52px;text-align:center;border-right:2px solid var(--c2)}
@@ -425,13 +431,13 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
       <table style="min-width:980px">
         <thead>
           <tr>
-            <th class="th-task"><input class="th-task-inp" value="Trabajo" title="Clic para editar"></th>
-            <th class="th-data"><input class="th-inp" value="Carga Diaria" title="Clic para editar"></th>
-            <th class="th-data"><input class="th-inp" value="Tiempo (min)" title="Clic para editar"></th>
-            <th class="th-data"><input class="th-inp" value="Asignadas" title="Clic para editar"></th>
-            <th class="th-data"><input class="th-inp" value="Min. Tot." title="Clic para editar"></th>
-            <th class="th-qty"><input class="th-inp" value="Qty nec." title="Clic para editar"></th>
-            <th colspan="20" style="background:#fff;border:none"></th>
+            <th class="th-task" rowspan="2" style="vertical-align:middle"><input class="th-task-inp" value="Trabajo" title="Clic para editar"></th>
+            <th class="th-data" rowspan="2" style="vertical-align:middle"><input class="th-inp" value="Carga Diaria" title="Clic para editar"></th>
+            <th class="th-data" rowspan="2" style="vertical-align:middle"><input class="th-inp" value="Tiempo (min)" title="Clic para editar"></th>
+            <th class="th-data" rowspan="2" style="vertical-align:middle"><input class="th-inp" value="Asignadas" title="Clic para editar"></th>
+            <th class="th-data" rowspan="2" style="vertical-align:middle"><input class="th-inp" value="Min. Tot." title="Clic para editar"></th>
+            <th class="th-qty" rowspan="2" style="vertical-align:middle"><input class="th-inp" value="Qty nec." title="Clic para editar"></th>
+            <th id="hours-row-placeholder" colspan="20" style="background:#fff;border:none;padding:0"></th>
           </tr>
           <tr id="hours-row"></tr>
           <tr id="halfs-row"></tr>
@@ -1119,14 +1125,19 @@ function updateAvailBadge(){
 function buildHeaders(){
   const hr=document.getElementById('hours-row');
   const hfr=document.getElementById('halfs-row');
-  const fixedCols=`
-    <th class="th-task" rowspan="1" style="border-right:2px solid var(--c2)"></th>
-    <th class="th-data"></th><th class="th-data"></th><th class="th-data"></th>
-    <th class="th-data"></th><th class="th-qty"></th>`;
-  hr.innerHTML=fixedCols;
-  hfr.innerHTML=`<th class="th-task" style="border-right:2px solid var(--c2)"></th>
-    <th class="th-data"></th><th class="th-data"></th><th class="th-data"></th>
-    <th class="th-data"></th><th class="th-qty"></th>`;
+  // Las columnas de datos (Trabajo, Carga...) usan rowspan="2" en el HTML,
+  // así que hours-row y halfs-row solo contienen las celdas horarias.
+  // halfs-row necesita las celdas de columnas vacías para alinear el grid.
+  const blankCols=`<th class="th-task" style="border-right:2px solid var(--c2);background:#fff"></th>
+    <th class="th-data" style="background:#fff"></th>
+    <th class="th-data" style="background:#fff"></th>
+    <th class="th-data" style="background:#fff"></th>
+    <th class="th-data" style="background:#fff"></th>
+    <th class="th-qty" style="background:#fff"></th>`;
+
+  hr.innerHTML=''; // solo horas — las columnas ya están con rowspan en fila 1
+  hfr.innerHTML=blankCols; // medias horas necesitan las columnas vacías para alinear
+
   HOURS.forEach(h=>{
     const th=document.createElement('th');
     th.className='th-hr'; th.colSpan=2;
@@ -1137,6 +1148,23 @@ function buildHeaders(){
       ht.className='th-half';
       ht.innerHTML=`<span style="font-size:8px">${half===0?':00':':30'}</span>`;
       hfr.appendChild(ht);
+    });
+  });
+
+  // Calcular tops para el sticky correcto tras renderizado
+  requestAnimationFrame(()=>{
+    const rows=[...document.querySelectorAll('thead tr')];
+    let top=0;
+    rows.forEach((row,i)=>{
+      const h=row.getBoundingClientRect().height||0;
+      [...row.querySelectorAll('th')].forEach(th=>{ th.style.top=top+'px'; });
+      // La última fila del thead lleva box-shadow como línea separadora
+      if(i===rows.length-1){
+        [...row.querySelectorAll('th')].forEach(th=>{
+          th.style.boxShadow='0 2px 0 0 var(--c2)';
+        });
+      }
+      top+=h;
     });
   });
 }
