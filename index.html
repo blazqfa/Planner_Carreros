@@ -618,39 +618,55 @@ async function testConfig() {
 // ── API ───────────────────────────────────────────────────────────
 async function gsCall(action, payload={}) {
   if (!GS_URL) { showConfigModal(); throw new Error('Sin URL configurada'); }
-  let res, text;
+
+  // Para operaciones de LECTURA usamos GET (GAS lo permite y no tiene CORS)
+  const readActions = ['getState'];
+  if (readActions.includes(action)) {
+    const params = new URLSearchParams({action, data: JSON.stringify(payload)});
+    let res, text;
+    try {
+      res = await fetch(GS_URL + '?' + params.toString(), {method:'GET'});
+      text = await res.text();
+    } catch(e) { throw new Error('Error de red (GET): ' + e.message); }
+    let j;
+    try { j = JSON.parse(text); } catch(e) {
+      console.error('[gsCall GET] Respuesta no-JSON:', text.slice(0,300));
+      throw new Error('Respuesta inesperada del servidor (GET).');
+    }
+    if (j && j.error) throw new Error(j.error);
+    return j;
+  }
+
+  // Para operaciones de ESCRITURA: POST con mode no-cors (GAS acepta sin devolver respuesta)
+  // Usamos no-cors porque GitHub Pages → GAS tiene restricción CORS en POST
   try {
-    res = await fetch(GS_URL, {
+    await fetch(GS_URL, {
       method: 'POST',
+      mode: 'no-cors', // no podemos leer la respuesta, pero el GAS la procesa
       headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({action, ...payload})
     });
-    text = await res.text();
+    // Con no-cors no podemos leer la respuesta — asumimos éxito si no hay error de red
+    return {ok: true};
   } catch(e) {
-    throw new Error('Error de red: ' + e.message);
+    throw new Error('Error de red (POST): ' + e.message);
   }
-  // Intentar parsear JSON
-  let j;
-  try { j = JSON.parse(text); }
-  catch(e) {
-    console.error('[gsCall] Respuesta no-JSON para action=' + action + ':', text.slice(0,200));
-    throw new Error('Respuesta inesperada del servidor. Revisa el script de Apps Script.');
-  }
-  if (j && j.error) throw new Error(j.error);
-  return j;
 }
 
+// Alias para compatibilidad — showToast = _toast
+function showToast(msg, duration) { _toast(msg, '#325d85', duration); }
+
 // ── TOAST ─────────────────────────────────────────────────────────
-function _toast(msg, color) {
+function _toast(msg, color, duration) {
   let t = document.getElementById('_planner_toast');
   if (!t) {
     t = document.createElement('div'); t.id='_planner_toast';
-    t.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);';
+    t.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:400px;';
     document.body.appendChild(t);
   }
   t.style.background = color||'#1a3d5c';
   t.textContent = msg; t.style.opacity='1';
-  clearTimeout(t._t); t._t = setTimeout(()=>{t.style.opacity='0';},3000);
+  clearTimeout(t._t); t._t = setTimeout(()=>{t.style.opacity='0';}, duration||3000);
 }
 
 // ── POLLING 8s ────────────────────────────────────────────────────
@@ -1555,11 +1571,7 @@ function aplicarAlPlanner(){
   scheduleSave();
   // Volver a planificación
   showTab('plan', document.querySelector('[onclick*="showTab(\'plan\'"]'));
-  // Toast
-  let toast=document.getElementById('_planner_toast');
-  if(!toast){toast=document.createElement('div');toast.id='_planner_toast';toast.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.25);';document.body.appendChild(toast);}
-  toast.style.background='#1a7a3d'; toast.textContent='✅ Cambios aplicados al planner'; toast.style.opacity='1';
-  clearTimeout(toast._t); toast._t=setTimeout(()=>{toast.style.opacity='0';},3000);
+  _toast('✅ Cambios aplicados al planner', '#1a7a3d');
 }
 
 function cfgAddTask(){
@@ -1613,7 +1625,6 @@ async function saveSnapshot(){
   const snap = collectSnapshot();
 
   // fullState guarda el estado del día SIN kpiHistory para evitar referencia circular
-  // (kpiHistory contiene snaps que a su vez tendrían fullState → kpiHistory → bucle)
   const fullStateData = collectState();
   const { kpiHistory: _ignored, ...fullStateWithoutHistory } = fullStateData;
   snap.fullState = fullStateWithoutHistory;
@@ -1624,15 +1635,17 @@ async function saveSnapshot(){
   if(btn){ btn.innerHTML = '⏳ Guardando…'; btn.disabled = true; }
 
   try {
-    // 1. Guardar KPI
-    const r1 = await gsCall('saveKPI', {snap});
-    console.log('[KPI] saveKPI ok', r1);
+    // Con mode:no-cors no recibimos respuesta del servidor pero el GAS lo procesa.
+    // Enviamos KPI y estado completo (sin fullState en el historial para evitar payload enorme)
+    const stateToSend = collectState();
+    const cleanHistory = (stateToSend.kpiHistory||[]).map(h=>{ const {fullState,...r}=h; return r; });
+    const stateClean = {...stateToSend, kpiHistory: cleanHistory};
 
-    // 2. Guardar estado completo
-    const state = collectState();
-    const r2 = await gsCall('saveState', {state});
-    console.log('[KPI] saveState ok', r2);
-    _lastHash = JSON.stringify(state);
+    await gsCall('saveKPI', {snap: {...snap, fullState: undefined}});
+    await gsCall('saveState', {state: stateClean});
+    _lastHash = JSON.stringify(stateClean);
+
+    console.log('[KPI] Guardado enviado para', snap.date);
 
     if(btn){
       btn.innerHTML = '✓ Guardado';
