@@ -489,11 +489,20 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
     <!-- Formulario añadir/editar -->
     <div id="vac-form" style="display:none;background:#f0f9fc;border:1.5px solid var(--c3);border-radius:8px;padding:14px;margin-bottom:14px">
       <div style="font-size:12px;font-weight:600;color:var(--c2);margin-bottom:10px" id="vac-form-title">Nueva entrada de vacaciones</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
+      <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap">
         <div>
           <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">Persona</label>
           <select id="vac-person" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit">
             <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">Tipo de ausencia</label>
+          <select id="vac-tipo" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-family:inherit">
+            <option value="vacaciones">🌴 Vacaciones</option>
+            <option value="baja">🏥 Baja médica</option>
+            <option value="ausencia">📋 Ausencia</option>
+            <option value="otros">📌 Otros</option>
           </select>
         </div>
         <div>
@@ -813,6 +822,7 @@ function showAddVacForm(){
   _editVacId=null;
   document.getElementById('vac-form-title').textContent='Nueva entrada de vacaciones';
   document.getElementById('vac-person').value='';
+  document.getElementById('vac-tipo').value='vacaciones';
   document.getElementById('vac-start').value='';
   document.getElementById('vac-end').value='';
   document.getElementById('vac-form-error').style.display='none';
@@ -823,9 +833,10 @@ function showAddVacForm(){
 function editVacEntry(id){
   const v=vacaciones.find(x=>x.id===id); if(!v) return;
   _editVacId=id;
-  document.getElementById('vac-form-title').textContent='Editar vacaciones';
+  document.getElementById('vac-form-title').textContent='Editar ausencia';
   populateVacPersonSelect();
   document.getElementById('vac-person').value=v.person;
+  document.getElementById('vac-tipo').value=v.tipo||'vacaciones';
   document.getElementById('vac-start').value=v.start;
   document.getElementById('vac-end').value=v.end;
   document.getElementById('vac-form-error').style.display='none';
@@ -849,6 +860,7 @@ function populateVacPersonSelect(){
 
 function saveVacEntry(){
   const person=document.getElementById('vac-person').value.trim();
+  const tipo=document.getElementById('vac-tipo').value||'vacaciones';
   const start=document.getElementById('vac-start').value;
   const end=document.getElementById('vac-end').value;
   const errEl=document.getElementById('vac-form-error');
@@ -857,15 +869,15 @@ function saveVacEntry(){
   if(!start||!end){errEl.textContent='Indica fecha de inicio y fin.';errEl.style.display='block';return;}
   if(end<start){errEl.textContent='La fecha fin no puede ser anterior al inicio.';errEl.style.display='block';return;}
 
-  // Comprobar solapamiento con otras vacaciones de la misma persona (excepto la que editamos)
+  // Comprobar solapamiento con otras ausencias de la misma persona (excepto la que editamos)
   const overlap=vacaciones.find(v=>v.person===person && v.id!==_editVacId && !(end<v.start||start>v.end));
-  if(overlap){errEl.textContent=`Ya hay vacaciones para ${person} del ${overlap.start} al ${overlap.end} que se solapan.`;errEl.style.display='block';return;}
+  if(overlap){errEl.textContent=`Ya hay un registro para ${person} del ${overlap.start} al ${overlap.end} que se solapa.`;errEl.style.display='block';return;}
 
   if(_editVacId){
     const idx=vacaciones.findIndex(v=>v.id===_editVacId);
-    if(idx>=0) vacaciones[idx]={...vacaciones[idx],person,start,end};
+    if(idx>=0) vacaciones[idx]={...vacaciones[idx],person,tipo,start,end};
   } else {
-    vacaciones.push({id:'vac_'+Date.now(),person,start,end});
+    vacaciones.push({id:'vac_'+Date.now(),person,tipo,start,end});
   }
   cancelVacForm();
   renderVacaciones();
@@ -893,6 +905,7 @@ function renderVacaciones(){
   const enCurso=vacaciones.filter(v=>vacStatus(v)==='active').length;
   const proximas=vacaciones.filter(v=>vacStatus(v)==='future').length;
   const personasAfectadas=new Set(vacaciones.filter(v=>vacStatus(v)!=='past').map(v=>v.person)).size;
+  const bajas=vacaciones.filter(v=>v.tipo==='baja'&&vacStatus(v)==='active').length;
 
   // Ordenar: activas primero, luego futuras por fecha, luego pasadas
   const sorted=[...vacaciones].sort((a,b)=>{
@@ -918,6 +931,7 @@ function renderVacaciones(){
 
   let html=`<div class="vac-summary-bar">
     <div class="vac-sum-card"><span class="vac-sum-label">En curso ahora</span><span class="vac-sum-val" style="color:var(--red)">${enCurso}</span></div>
+    <div class="vac-sum-card"><span class="vac-sum-label">🏥 Bajas médicas</span><span class="vac-sum-val" style="color:#7f1d1d">${bajas}</span></div>
     <div class="vac-sum-card"><span class="vac-sum-label">Próximas</span><span class="vac-sum-val" style="color:#e8a838">${proximas}</span></div>
     <div class="vac-sum-card"><span class="vac-sum-label">Personas afectadas</span><span class="vac-sum-val">${personasAfectadas}</span></div>
     <div class="vac-sum-card"><span class="vac-sum-label">Total registros</span><span class="vac-sum-val">${vacaciones.length}</span></div>
@@ -926,6 +940,7 @@ function renderVacaciones(){
   html+=`<table class="vac-table">
     <thead><tr>
       <th>Persona</th>
+      <th>Tipo</th>
       <th>Inicio</th>
       <th>Fin</th>
       <th>Días</th>
@@ -943,10 +958,19 @@ function renderVacaciones(){
       const days=diffDays(v.start,v.end);
       const startFmt=new Date(v.start).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
       const endFmt=new Date(v.end).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+      const tipo=v.tipo||'vacaciones';
+      const tipoConfig={
+        vacaciones:{icon:'🌴',label:'Vacaciones',bg:'#e8f5e9',color:'#1b5e20'},
+        baja:      {icon:'🏥',label:'Baja médica',bg:'#fde8e8',color:'#7f1d1d'},
+        ausencia:  {icon:'📋',label:'Ausencia',   bg:'#faeeda',color:'#633806'},
+        otros:     {icon:'📌',label:'Otros',       bg:'#ede9fe',color:'#4c1d95'}
+      };
+      const tc=tipoConfig[tipo]||tipoConfig.otros;
       html+=`<tr>
         <td><div class="vac-person-cell">
           ${i===0?`<div class="vac-avatar" style="background:${color}">${initials}</div><strong>${person}</strong>`:`<div style="width:26px"></div><span style="color:#888">${person}</span>`}
         </div></td>
+        <td><span style="background:${tc.bg};color:${tc.color};border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap">${tc.icon} ${tc.label}</span></td>
         <td>${startFmt}</td>
         <td>${endFmt}</td>
         <td><span class="vac-days">${days} día${days>1?'s':''}</span></td>
