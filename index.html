@@ -314,6 +314,12 @@ tr.priority-row > td:first-child { border-left: 3px solid #e05050; }
 tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
 .priority-star { color: #e05050; font-size: 13px; cursor: pointer; margin-right: 2px; flex-shrink:0; }
 .priority-star:hover { color: #c0202a; }
+/* Botón sync */
+#btn-sync { transition: opacity .2s; }
+#btn-sync:hover { opacity: 0.85 !important; }
+/* Animación save */
+@keyframes spin { to { transform: rotate(360deg); } }
+.saving-spin { display:inline-block; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
@@ -332,13 +338,18 @@ tr.priority-row .inp-task { color: #c0202a; font-weight: 600; }
     <span class="edit-hint">✏ editar</span>
   </div>
   <div class="hdr-right">
-    <span class="hdr-date" id="today-label"></span>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+      <span class="hdr-date" id="today-label"></span>
+      <span id="day-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px;cursor:pointer;white-space:nowrap;transition:opacity .2s;" title="Cambiar día de planificación" onclick="openDayPicker()"></span>
+      <input type="date" id="day-picker-input" style="display:none;font-size:11px;border:1px solid var(--bd);border-radius:5px;padding:2px 6px;" onchange="onDayPickerChange(this.value)" onblur="this.style.display='none'">
+    </div>
     <div class="avail-wrap">
       <span>👥</span>
       <span class="avail-label">Disponibles hoy:</span>
       <input class="avail-inp" id="avail-inp" type="number" min="0" max="99" value="15" oninput="updateAvailBadge()">
       <span class="avail-badge" id="avail-badge"></span>
     </div>
+    <button class="btn-sec" id="btn-sync" style="padding:5px 10px;font-size:10px;" onclick="syncNow()" title="Sincronizar con Google Sheets">🔄 Sincronizar</button>
     <button class="btn-sec" id="btn-guardar-kpi" style="padding:5px 10px" onclick="saveSnapshot()">💾 Guardar KPI</button>
     <button class="btn-sec" style="padding:5px 10px;font-size:10px;" onclick="showConfigModal()">⚙ Sheets</button>
   </div>
@@ -590,7 +601,7 @@ const PCOLORS = [
 let rowCnt=0, personCnt=0, kpiHistory=[], vacaciones=[];
 let dragPersonName='', dragPersonColor='';
 let selectedBlock=null, selectedRowId=null, selectedSid=null, selectedKPIDate=null;
-let _loading=false, _saveTimer=null, _pollingTimer=null, _lastHash='';
+let _loading=false, _saveTimer=null, _lastHash='', _isSaving=false;
 
 // ── GS URL ────────────────────────────────────────────────────────
 let GS_URL = 'https://script.google.com/macros/s/AKfycbxBcEwazyDdjjIZxvleozadbufSHjTSHX-Ei-8kW388-qclbaH9TuNImngctKeH2nH_TA/exec';
@@ -742,26 +753,76 @@ function _toast(msg, color, duration) {
   clearTimeout(t._t); t._t = setTimeout(()=>{t.style.opacity='0';}, duration||3000);
 }
 
-// ── POLLING 8s ────────────────────────────────────────────────────
-function startPolling() {
-  if (_pollingTimer) clearInterval(_pollingTimer);
-  _pollingTimer = setInterval(async () => {
-    if (!GS_URL) return;
-    try {
-      const r = await gsCall('getState');
-      const h = JSON.stringify(r.data);
-      if (h && h !== _lastHash) {
-        _lastHash = h;
-        _applyRemoteState(r.data);
-        _toast('📡 Planner actualizado');
-      }
-    } catch(e) {}
-  }, 8000);
+// ── SINCRONIZACIÓN MANUAL ─────────────────────────────────────────
+async function syncNow() {
+  if (!GS_URL) { showConfigModal(); return; }
+  const btn = document.getElementById('btn-sync');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sincronizando…'; }
+  try {
+    const r = await gsCall('getState');
+    const h = JSON.stringify(r.data);
+    if (h && h !== _lastHash) {
+      _lastHash = h;
+      _applyRemoteState(r.data);
+      _toast('📡 Planner sincronizado con Sheets', '#1a7a3d');
+    } else {
+      _toast('✅ Ya estás al día', '#325d85', 2000);
+    }
+  } catch(e) {
+    _toast('⚠ Error al sincronizar: ' + e.message, '#c0365a');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Sincronizar'; }
+  }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────
 function today(){ const d=new Date(); return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
 function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+// Devuelve el badge de día para mostrar junto al título
+// planDate: Date del día que se está editando (por defecto hoy)
+function getDayBadge(planDate){
+  const now=new Date();
+  const todayD=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const plan=new Date(planDate.getFullYear(),planDate.getMonth(),planDate.getDate());
+  const diffDays=Math.round((plan-todayD)/(1000*60*60*24));
+  if(diffDays===0) return {label:'📅 Hoy',color:'#1a7a3d',bg:'#d0f4ec'};
+  if(diffDays===1) return {label:'📅 Mañana',color:'#325d85',bg:'#d8eaf8'};
+  if(diffDays>1){
+    const dayName=planDate.toLocaleDateString('es-ES',{weekday:'long'});
+    return {label:'📅 '+dayName.charAt(0).toUpperCase()+dayName.slice(1),color:'#6b4c00',bg:'#faeeda'};
+  }
+  if(diffDays===-1) return {label:'📅 Ayer',color:'#888',bg:'#f0f0f0'};
+  // días pasados
+  const dayName=planDate.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});
+  return {label:'📅 '+dayName,color:'#888',bg:'#f0f0f0'};
+}
+
+// Calcula el siguiente día laborable (lunes-viernes) a partir de hoy
+function nextWorkDay(){
+  const d=new Date(); d.setDate(d.getDate()+1);
+  while(d.getDay()===0||d.getDay()===6) d.setDate(d.getDate()+1);
+  return d;
+}
+
+// Actualiza el badge de día en el header
+let _planDate=new Date(); // día que se está planificando (por defecto hoy)
+function updateDayBadge(){
+  const el=document.getElementById('day-badge');
+  if(!el) return;
+  const b=getDayBadge(_planDate);
+  el.textContent=b.label;
+  el.style.background=b.bg;
+  el.style.color=b.color;
+}
+function setPlanDate(d){
+  _planDate=d;
+  // Actualizar etiqueta de fecha en header
+  document.getElementById('today-label').textContent=
+    d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  updateDayBadge();
+  scheduleSave();
+}
 function getInitials(n){ return (n||'').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?'; }
 
 // ── TABS ──────────────────────────────────────────────────────────
@@ -1818,22 +1879,47 @@ function collectState(){
   });
   const persons=[]; document.querySelectorAll('.person-card').forEach(c=>persons.push(c.querySelector('input').value));
   const colHeaders=[]; document.querySelectorAll('thead tr:first-child input').forEach(i=>colHeaders.push(i.value));
-  return{tasks,persons,colHeaders,pageTitle:document.getElementById('hdr-title').value,avail:document.getElementById('avail-inp').value,kpiHistory,vacaciones};
+  const planDateISO=_planDate.toISOString().slice(0,10);
+  return{tasks,persons,colHeaders,pageTitle:document.getElementById('hdr-title').value,avail:document.getElementById('avail-inp').value,kpiHistory,vacaciones,planDate:planDateISO};
 }
 
 // ── SAVE ──────────────────────────────────────────────────────────
 function scheduleSave(){
   if(_loading) return;
   clearTimeout(_saveTimer);
+  // Mostrar indicador "pendiente de guardar"
+  _setSyncStatus('pending');
   _saveTimer=setTimeout(()=>{ if(GS_URL) saveToSheets(); },800);
 }
 
+function _setSyncStatus(status){
+  const btn=document.getElementById('btn-sync');
+  if(!btn) return;
+  if(status==='pending'){
+    btn.style.opacity='0.6';
+    btn.title='Guardando cambios…';
+  } else if(status==='saving'){
+    btn.style.opacity='0.5';
+    btn.textContent='💾 Guardando…';
+    btn.disabled=true;
+  } else if(status==='saved'){
+    btn.style.opacity='1';
+    btn.textContent='🔄 Sincronizar';
+    btn.disabled=false;
+    btn.title='Sincronizar con Google Sheets';
+  } else {
+    btn.style.opacity='1';
+    btn.disabled=false;
+    btn.title='Sincronizar con Google Sheets';
+  }
+}
+
 async function saveToSheets(){
-  if(!GS_URL||_loading) return;
+  if(!GS_URL||_loading||_isSaving) return;
+  _isSaving=true;
+  _setSyncStatus('saving');
   try {
     const state=collectState();
-    // Al guardar el estado global, quitar fullState de cada entrada de kpiHistory
-    // para no duplicar datos y mantener el payload ligero
     const stateToSend={
       ...state,
       kpiHistory:(state.kpiHistory||[]).map(h=>{
@@ -1841,10 +1927,15 @@ async function saveToSheets(){
       })
     };
     const body=JSON.stringify(stateToSend);
-    if(body===_lastHash) return; // no changes
+    if(body===_lastHash){ _setSyncStatus('saved'); _isSaving=false; return; }
     await gsCall('saveState',{state:stateToSend});
     _lastHash=body;
-  } catch(e){ console.warn('Save error:',e.message); }
+    _setSyncStatus('saved');
+  } catch(e){
+    console.warn('Save error:',e.message);
+    _setSyncStatus('saved');
+  }
+  _isSaving=false;
 }
 
 // ── LOAD & APPLY STATE ────────────────────────────────────────────
@@ -1880,6 +1971,14 @@ function _applyRemoteState(state){
   });
   if(state.kpiHistory) kpiHistory=state.kpiHistory;
   if(state.vacaciones) vacaciones=state.vacaciones;
+  // Restaurar fecha de planificación
+  if(state.planDate){
+    const [y,m,d]=state.planDate.split('-').map(Number);
+    _planDate=new Date(y,m-1,d);
+    document.getElementById('today-label').textContent=
+      _planDate.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    updateDayBadge();
+  }
   _loading=false;
   updateTotals(); updateBlockCount(); updateAvailBadge(); refreshPersonStatus();
 }
@@ -1936,8 +2035,8 @@ async function loadState(){
     updateTotals(); updateBlockCount(); updateAvailBadge(); refreshPersonStatus();
   }
 
-  startPolling();
 }
+
 
 // ── RESET ─────────────────────────────────────────────────────────
 async function resetAll(){
@@ -1950,8 +2049,25 @@ async function resetAll(){
 // ── INPUT AUTO-SAVE ────────────────────────────────────────────────
 document.addEventListener('input',()=>{ updateTotals(); scheduleSave(); });
 
+// ── DAY PICKER ────────────────────────────────────────────────────
+function openDayPicker(){
+  const inp=document.getElementById('day-picker-input');
+  if(!inp) return;
+  const y=_planDate.getFullYear(), m=String(_planDate.getMonth()+1).padStart(2,'0'), d=String(_planDate.getDate()).padStart(2,'0');
+  inp.value=`${y}-${m}-${d}`;
+  inp.style.display='inline-block';
+  inp.focus();
+}
+function onDayPickerChange(val){
+  if(!val) return;
+  const [y,m,d]=val.split('-').map(Number);
+  setPlanDate(new Date(y,m-1,d));
+  document.getElementById('day-picker-input').style.display='none';
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 document.getElementById('today-label').textContent=today();
+updateDayBadge();
 buildHeaders();
 
 // URL ya configurada — arrancar directamente
